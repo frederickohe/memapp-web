@@ -11,6 +11,10 @@ Single React app for the **Ymca Member App** public website and admin dashboard.
 
 Both hosts serve the same production build. Routing is based on hostname.
 
+## Requirements
+
+- **Node.js 20.19+** (Vite 8 does not support Node 18)
+
 ## Local development
 
 ```bash

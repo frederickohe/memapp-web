@@ -14,7 +14,31 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Deploy memapp-web
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+          tar -czf dist.tgz -C dist .
+
+      - name: Upload build to server
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: dist.tgz
+          target: /tmp
+
+      - name: Install build and restart Caddy
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -23,4 +47,10 @@ jobs:
           script_stop: true
           script: |
             set -euo pipefail
-            bash /var/www/memapp-web/scripts/deploy.sh
+            mkdir -p /var/www/memapp-web/dist
+            rm -rf /var/www/memapp-web/dist/*
+            tar -xzf /tmp/dist.tgz -C /var/www/memapp-web/dist
+            rm -f /tmp/dist.tgz
+            cd /var/www/memappcaddy
+            docker compose restart caddy
+            echo "memapp-web deploy complete"
