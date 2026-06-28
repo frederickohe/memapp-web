@@ -1,51 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import './finance.css'
 import '../../styles/shared.css'
-import { MockDataBanner } from '../../components/MockDataBanner'
 import { paymentApi } from '../../core/services'
-import type { AdminPayment, PaymentStatus, PaymentType } from '../../core/models'
+import type { AdminPayment, PaymentOverview, PaymentStatus, PaymentType } from '../../core/models'
 import { ApiError } from '../../core/utils/apiError'
 import { formatGhs } from '../../core/utils/formatGhs'
 
-interface PayoutRow {
-  riderId: string
-  riderName: string
-  avatar: string
-  amount: number
-  method: string
-  status: 'Paid' | 'Pending' | 'Failed'
-  date: string
+const TYPE_LABELS: Record<PaymentType, string> = {
+  monthly_dues: 'Monthly Dues',
+  annual_affiliation: 'Annual Affiliation',
+  refund: 'Refund',
 }
 
-const WEEKLY_REVENUE = [
-  { day: 'Mon', value: 3200 },
-  { day: 'Tue', value: 4100 },
-  { day: 'Wed', value: 2950 },
-  { day: 'Thu', value: 4800 },
-  { day: 'Fri', value: 5600 },
-  { day: 'Sat', value: 6900 },
-  { day: 'Sun', value: 4000 },
-]
-
-const PAYMENT_SPLIT = [
-  { method: 'MTN MoMo', percent: 52, color: '#ffc107' },
-  { method: 'Vodafone Cash', percent: 21, color: '#ef4444' },
-  { method: 'AirtelTigo Money', percent: 14, color: '#3b82f6' },
-  { method: 'Card (Paystack)', percent: 13, color: '#8b5cf6' },
-]
-
-const PAYOUTS: PayoutRow[] = [
-  { riderId: 'RD-1042', riderName: 'Eddie Lobanovskiy', avatar: 'https://i.pravatar.cc/36?img=11', amount: 640, method: 'MTN MoMo', status: 'Paid', date: 'Jun 16, 2026' },
-  { riderId: 'RD-1043', riderName: 'Alexey Stave', avatar: 'https://i.pravatar.cc/36?img=12', amount: 412, method: 'Vodafone Cash', status: 'Paid', date: 'Jun 16, 2026' },
-  { riderId: 'RD-1044', riderName: 'Anton Tkacheve', avatar: 'https://i.pravatar.cc/36?img=13', amount: 388, method: 'MTN MoMo', status: 'Pending', date: 'Jun 16, 2026' },
-  { riderId: 'RD-1045', riderName: 'Kwesi Boateng', avatar: 'https://i.pravatar.cc/36?img=15', amount: 290, method: 'AirtelTigo Money', status: 'Failed', date: 'Jun 16, 2026' },
-  { riderId: 'RD-1046', riderName: 'Yaw Darko', avatar: 'https://i.pravatar.cc/36?img=16', amount: 510, method: 'MTN MoMo', status: 'Paid', date: 'Jun 16, 2026' },
-]
-
-const TYPE_LABELS: Record<PaymentType, string> = {
-  bundle_purchase: 'Bundle Purchase',
-  delivery_payment: 'Pay-Per-Delivery',
-  refund: 'Refund',
+const METHOD_LABELS: Record<string, string> = {
+  card: 'Card',
+  momo_link: 'MoMo (Web)',
+  momo_ussd: 'MoMo (USSD)',
+  mtn_momo: 'MTN MoMo',
+  vodafone: 'Vodafone Cash',
+  airteltigo: 'AirtelTigo',
 }
 
 function formatPaymentDate(iso: string): string {
@@ -57,9 +30,10 @@ function titleCaseStatus(status: string): string {
 }
 
 export function FinancePage() {
-  const [activeTab, setActiveTab] = useState<'transactions' | 'payouts'>('transactions')
   const [payments, setPayments] = useState<AdminPayment[]>([])
+  const [overview, setOverview] = useState<PaymentOverview | null>(null)
   const [loading, setLoading] = useState(false)
+  const [overviewLoading, setOverviewLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -72,10 +46,20 @@ export function FinancePage() {
   const [activateSuccess, setActivateSuccess] = useState(false)
 
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'All' | PaymentStatus | 'Paid' | 'Pending' | 'Failed'>('All')
+  const [statusFilter, setStatusFilter] = useState<'All' | PaymentStatus>('All')
   const [typeFilter, setTypeFilter] = useState<'All' | PaymentType>('All')
 
-  const maxRevenue = Math.max(...WEEKLY_REVENUE.map((d) => d.value))
+  const loadOverview = useCallback(async () => {
+    setOverviewLoading(true)
+    try {
+      const data = await paymentApi.overview()
+      setOverview(data)
+    } catch {
+      setOverview(null)
+    } finally {
+      setOverviewLoading(false)
+    }
+  }, [])
 
   const load = useCallback(async (targetPage = 1) => {
     setLoading(true)
@@ -104,31 +88,23 @@ export function FinancePage() {
   }, [statusFilter, typeFilter])
 
   useEffect(() => {
-    if (activeTab === 'transactions') {
-      load()
-    }
-  }, [activeTab, load])
+    loadOverview()
+    load()
+  }, [loadOverview, load])
 
   const filteredTransactions = useMemo(() => {
     const term = searchTerm.trim().toLowerCase()
     if (!term) return payments
     return payments.filter(
       (t) =>
-        t.customer.full_name.toLowerCase().includes(term) ||
+        t.user.full_name.toLowerCase().includes(term) ||
         t.reference.toLowerCase().includes(term),
     )
   }, [payments, searchTerm])
 
-  const filteredPayouts = useMemo(() => {
-    return PAYOUTS.filter((p) => {
-      const matchesSearch =
-        p.riderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.riderId.toLowerCase().includes(searchTerm.toLowerCase())
-      const payoutStatusFilter = statusFilter as 'All' | 'Paid' | 'Pending' | 'Failed'
-      const matchesStatus = payoutStatusFilter === 'All' || p.status === payoutStatusFilter
-      return matchesSearch && matchesStatus
-    })
-  }, [searchTerm, statusFilter])
+  const weeklyRevenue = overview?.weekly_revenue ?? []
+  const maxRevenue = Math.max(...weeklyRevenue.map((d) => d.value), 1)
+  const paymentMethods = overview?.payment_methods ?? []
 
   const openActivateModal = () => {
     setActivateReference('')
@@ -153,6 +129,7 @@ export function FinancePage() {
       setActivatePending(false)
       setActivateSuccess(true)
       load(page)
+      loadOverview()
     } catch (err: unknown) {
       setActivatePending(false)
       setActivateError(
@@ -176,7 +153,7 @@ export function FinancePage() {
             <i className="ri-money-dollar-circle-fill" />
           </div>
           <div>
-            <p className="stat-val">{total}</p>
+            <p className="stat-val">{overview?.total_payments ?? total}</p>
             <p className="stat-lbl">Total Payments</p>
           </div>
         </div>
@@ -185,26 +162,26 @@ export function FinancePage() {
             <i className="ri-checkbox-circle-fill" />
           </div>
           <div>
-            <p className="stat-val">{payments.filter((p) => p.status === 'success').length}</p>
-            <p className="stat-lbl">Successful (this page)</p>
+            <p className="stat-val">{overview?.successful_count ?? '—'}</p>
+            <p className="stat-lbl">Successful</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon icon-orange">
-            <i className="ri-hourglass-line" />
+            <i className="ri-calendar-check-line" />
           </div>
           <div>
-            <p className="stat-val">{payments.filter((p) => p.status === 'pending').length}</p>
-            <p className="stat-lbl">Pending (this page)</p>
+            <p className="stat-val">{formatGhs(overview?.dues_collected_ghs ?? 0)}</p>
+            <p className="stat-lbl">Dues Collected</p>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon icon-red">
-            <i className="ri-error-warning-fill" />
+          <div className="stat-icon icon-purple">
+            <i className="ri-building-line" />
           </div>
           <div>
-            <p className="stat-val">{payments.filter((p) => p.status === 'failed').length}</p>
-            <p className="stat-lbl">Failed (this page)</p>
+            <p className="stat-val">{formatGhs(overview?.affiliation_collected_ghs ?? 0)}</p>
+            <p className="stat-lbl">Affiliation Collected</p>
           </div>
         </div>
       </section>
@@ -215,19 +192,25 @@ export function FinancePage() {
             <h2 className="card-title">Weekly Revenue</h2>
             <span className="more-dots">···</span>
           </div>
-          <MockDataBanner message="No revenue analytics endpoint exists yet — this chart shows sample data." />
-          <div className="bar-chart">
-            {WEEKLY_REVENUE.map((d) => (
-              <div key={d.day} className="bar-col">
-                <div className="bar-track">
-                  <div className="bar-fill" style={{ height: `${(d.value / maxRevenue) * 100}%` }}>
-                    <span className="bar-value">{formatGhs(d.value)}</span>
+          {overviewLoading && (
+            <div className="empty-state" style={{ padding: '24px' }}>
+              <i className="ri-loader-4-line spin" /> Loading...
+            </div>
+          )}
+          {!overviewLoading && (
+            <div className="bar-chart">
+              {weeklyRevenue.map((d) => (
+                <div key={d.day} className="bar-col">
+                  <div className="bar-track">
+                    <div className="bar-fill" style={{ height: `${(d.value / maxRevenue) * 100}%` }}>
+                      <span className="bar-value">{formatGhs(d.value)}</span>
+                    </div>
                   </div>
+                  <span className="bar-label">{d.day}</span>
                 </div>
-                <span className="bar-label">{d.day}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="right-col">
@@ -236,9 +219,13 @@ export function FinancePage() {
               <h2 className="card-title">Payment Methods</h2>
               <span className="more-dots">···</span>
             </div>
-            <MockDataBanner message="Payment method breakdown is not yet returned by any endpoint — preview data only." />
+            {paymentMethods.length === 0 && !overviewLoading && (
+              <div className="empty-state" style={{ padding: '24px' }}>
+                <i className="ri-inbox-line" /> No payment data yet
+              </div>
+            )}
             <div className="pm-list">
-              {PAYMENT_SPLIT.map((pm) => (
+              {paymentMethods.map((pm) => (
                 <div key={pm.method} className="pm-row">
                   <div className="pm-top">
                     <span className="pm-name">{pm.method}</span>
@@ -255,31 +242,14 @@ export function FinancePage() {
       </section>
 
       <section className="card table-card">
-        <div className="tab-bar">
-          <button
-            type="button"
-            className={`tab-btn ${activeTab === 'transactions' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('transactions')}
-          >
-            Transactions
-          </button>
-          <button
-            type="button"
-            className={`tab-btn ${activeTab === 'payouts' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('payouts')}
-          >
-            Rider Payouts
-          </button>
-        </div>
-
         <div className="card-hdr">
-          <h2 className="card-title">{activeTab === 'transactions' ? 'All Transactions' : 'Weekly Payout Cycle'}</h2>
+          <h2 className="card-title">Membership Payments</h2>
           <div className="filter-bar">
             <div className="search-box">
               <i className="ri-search-line" />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search by name or reference..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -290,217 +260,120 @@ export function FinancePage() {
               onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
             >
               <option value="All">All Status</option>
-              {activeTab === 'transactions' && (
-                <>
-                  <option value="success">Success</option>
-                  <option value="pending">Pending</option>
-                  <option value="failed">Failed</option>
-                  <option value="refunded">Refunded</option>
-                </>
-              )}
-              {activeTab === 'payouts' && (
-                <>
-                  <option value="Paid">Paid</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Failed">Failed</option>
-                </>
-              )}
+              <option value="success">Success</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+              <option value="refunded">Refunded</option>
             </select>
-            {activeTab === 'transactions' && (
-              <select
-                className="filter-select"
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
-              >
-                <option value="All">All Types</option>
-                <option value="bundle_purchase">Bundle Purchase</option>
-                <option value="delivery_payment">Pay-Per-Delivery</option>
-                <option value="refund">Refund</option>
-              </select>
-            )}
-            {activeTab === 'transactions' && (
-              <button type="button" className="btn-dark" onClick={openActivateModal}>
-                <i className="ri-flashlight-line" /> Activate Payment
-              </button>
-            )}
+            <select
+              className="filter-select"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
+            >
+              <option value="All">All Types</option>
+              <option value="monthly_dues">Monthly Dues</option>
+              <option value="annual_affiliation">Annual Affiliation</option>
+              <option value="refund">Refund</option>
+            </select>
+            <button type="button" className="btn-dark" onClick={openActivateModal}>
+              <i className="ri-flashlight-line" /> Activate Payment
+            </button>
           </div>
         </div>
 
-        {error && activeTab === 'transactions' && (
+        {error && (
           <div className="auth-alert auth-alert-error" style={{ margin: '0 20px 16px' }}>
             <i className="ri-error-warning-line" />
             <span>{error}</span>
           </div>
         )}
 
-        {activeTab === 'transactions' && (
-          <div className="tbl-wrap">
-            <table className="tbl">
-              <thead>
+        <div className="tbl-wrap">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Member</th>
+                <th>Type</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && (
                 <tr>
-                  <th>Reference</th>
-                  <th>Customer</th>
-                  <th>Type</th>
-                  <th>Method</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Date</th>
+                  <td colSpan={7}>
+                    <div className="empty-state">
+                      <i className="ri-loader-4-line spin" /> Loading payments...
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {loading && (
-                  <tr>
-                    <td colSpan={7}>
-                      <div className="empty-state">
-                        <i className="ri-loader-4-line spin" /> Loading payments...
-                      </div>
-                    </td>
-                  </tr>
-                )}
-                {!loading && (
-                  <>
-                    {filteredTransactions.map((t) => (
-                      <tr key={t.id}>
-                        <td className="td-track">{t.reference}</td>
-                        <td>{t.customer.full_name}</td>
-                        <td>{TYPE_LABELS[t.type] ?? t.type}</td>
-                        <td>{t.method || '—'}</td>
-                        <td
-                          style={{
-                            color: t.type === 'refund' ? '#ef4444' : '#1a1a2e',
-                            fontWeight: 600,
-                          }}
-                        >
-                          {t.type === 'refund' ? '-' : ''}
-                          {formatGhs(t.amount < 0 ? -t.amount : t.amount, true)}
-                        </td>
-                        <td>
-                          <span
-                            className={`badge ${
-                              t.status === 'success'
-                                ? 'badge-completed'
-                                : t.status === 'pending'
-                                  ? 'badge-pending'
-                                  : t.status === 'failed'
-                                    ? 'badge-cancelled'
-                                    : 'badge-info'
-                            }`}
-                          >
-                            {titleCaseStatus(t.status)}
-                          </span>
-                        </td>
-                        <td>{formatPaymentDate(t.created_at)}</td>
-                      </tr>
-                    ))}
-                    {filteredTransactions.length === 0 && (
-                      <tr>
-                        <td colSpan={7}>
-                          <div className="empty-state">
-                            <i className="ri-inbox-line" />
-                            No transactions match your filters
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {activeTab === 'payouts' && (
-          <div>
-            <div style={{ padding: '0 20px' }}>
-              <MockDataBanner message="There is no admin endpoint yet for rider payouts — this table shows sample data only." />
-            </div>
-            <div className="tbl-wrap">
-              <table className="tbl">
-                <thead>
-                  <tr>
-                    <th>Rider</th>
-                    <th>Rider ID</th>
-                    <th>Amount</th>
-                    <th>Method</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPayouts.map((p) => (
-                    <tr key={p.riderId}>
-                      <td>
-                        <div className="rider-left">
-                          <img src={p.avatar} alt={p.riderName} className="avatar-sm" />
-                          <span style={{ fontWeight: 600, color: '#1a1a2e' }}>{p.riderName}</span>
-                        </div>
+              )}
+              {!loading && (
+                <>
+                  {filteredTransactions.map((t) => (
+                    <tr key={t.id}>
+                      <td className="td-track">{t.reference}</td>
+                      <td>{t.user.full_name}</td>
+                      <td>{TYPE_LABELS[t.type] ?? t.type}</td>
+                      <td>{METHOD_LABELS[t.method ?? ''] ?? t.method ?? '—'}</td>
+                      <td style={{ fontWeight: 600 }}>
+                        {t.type === 'refund' ? '-' : ''}
+                        {formatGhs(t.amount < 0 ? -t.amount : t.amount, true)}
                       </td>
-                      <td className="td-track">{p.riderId}</td>
-                      <td style={{ fontWeight: 600 }}>{formatGhs(p.amount)}</td>
-                      <td>{p.method}</td>
                       <td>
                         <span
                           className={`badge ${
-                            p.status === 'Paid'
+                            t.status === 'success'
                               ? 'badge-completed'
-                              : p.status === 'Pending'
+                              : t.status === 'pending'
                                 ? 'badge-pending'
-                                : 'badge-cancelled'
+                                : t.status === 'failed'
+                                  ? 'badge-cancelled'
+                                  : 'badge-info'
                           }`}
                         >
-                          {p.status}
+                          {titleCaseStatus(t.status)}
                         </span>
                       </td>
-                      <td>{p.date}</td>
-                      <td>
-                        <div className="row-actions">
-                          <button type="button" title="View details" disabled>
-                            <i className="ri-eye-line" />
-                          </button>
-                          {p.status === 'Failed' && (
-                            <button type="button" title="Retry payout" disabled>
-                              <i className="ri-refresh-line" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
+                      <td>{formatPaymentDate(t.created_at)}</td>
                     </tr>
                   ))}
-                  {filteredPayouts.length === 0 && (
+                  {filteredTransactions.length === 0 && (
                     <tr>
                       <td colSpan={7}>
                         <div className="empty-state">
                           <i className="ri-inbox-line" />
-                          No payouts match your filters
+                          No transactions match your filters
                         </div>
                       </td>
                     </tr>
                   )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+                </>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-        {activeTab === 'transactions' && (
-          <div className="pagination">
-            <span className="pagination-info">
-              Showing page {page} of {pages} · {total} payments total
-            </span>
-            <div className="pagination-controls">
-              <button type="button" className="page-btn" disabled={page <= 1} onClick={() => goToPage(page - 1)}>
-                <i className="ri-arrow-left-s-line" />
-              </button>
-              <button type="button" className="page-btn active">
-                {page}
-              </button>
-              <button type="button" className="page-btn" disabled={page >= pages} onClick={() => goToPage(page + 1)}>
-                <i className="ri-arrow-right-s-line" />
-              </button>
-            </div>
+        <div className="pagination">
+          <span className="pagination-info">
+            Showing page {page} of {pages} · {total} payments total
+            {overview ? ` · ${formatGhs(overview.total_revenue_ghs)} revenue` : ''}
+          </span>
+          <div className="pagination-controls">
+            <button type="button" className="page-btn" disabled={page <= 1} onClick={() => goToPage(page - 1)}>
+              <i className="ri-arrow-left-s-line" />
+            </button>
+            <button type="button" className="page-btn active">
+              {page}
+            </button>
+            <button type="button" className="page-btn" disabled={page >= pages} onClick={() => goToPage(page + 1)}>
+              <i className="ri-arrow-right-s-line" />
+            </button>
           </div>
-        )}
+        </div>
       </section>
 
       {showActivateModal && (
@@ -514,7 +387,7 @@ export function FinancePage() {
             </div>
 
             <p className="modal-sub">
-              Use this when a customer was charged via Paystack but their credits or bundle weren&apos;t activated due to a missed webhook.
+              Use this when a member was charged but their dues or affiliation status was not updated due to a missed webhook.
             </p>
 
             {activateError && (
@@ -533,11 +406,11 @@ export function FinancePage() {
 
             {!activateSuccess && (
               <div className="form-group">
-                <label className="form-label">Paystack Reference</label>
+                <label className="form-label">Payment Reference</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. VGB-1781344431934-kv1w6z"
+                  placeholder="e.g. YMC-DUES-20260628120000-ABC123"
                   value={activateReference}
                   onChange={(e) => setActivateReference(e.target.value)}
                 />

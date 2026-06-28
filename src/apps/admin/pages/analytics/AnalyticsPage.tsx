@@ -1,75 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
-import { MockDataBanner } from '../../components/MockDataBanner'
-import { getYmcaBranchCount } from '../../components/YmcaBranchMap'
-import { vhsApi } from '../../core/services'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ScopeFilterBar } from '../../components/ScopeFilterBar'
+import { branchApi } from '../../core/services'
+import type { ProgressOverview, ScopeFilterParams } from '../../core/models'
 import { ApiError } from '../../core/utils/apiError'
 import '../../styles/shared.css'
 import './analytics.css'
-
-const TOP_BRANCHES = [
-  {
-    name: 'Accra Central YMCA',
-    region: 'Greater Accra',
-    count: 124,
-    avatar: 'https://i.pravatar.cc/36?img=11',
-  },
-  {
-    name: 'Kumasi YMCA',
-    region: 'Ashanti',
-    count: 98,
-    avatar: 'https://i.pravatar.cc/36?img=12',
-  },
-  {
-    name: 'Tema Community YMCA',
-    region: 'Greater Accra',
-    count: 76,
-    avatar: 'https://i.pravatar.cc/36?img=13',
-  },
-  {
-    name: 'Takoradi YMCA',
-    region: 'Western',
-    count: 52,
-    avatar: 'https://i.pravatar.cc/36?img=14',
-  },
-]
-
-const RECENT_REGISTRATIONS = [
-  {
-    id: 'MEM-1042',
-    name: 'Ama Serwaa',
-    branch: 'Accra Central',
-    program: 'Youth Leadership',
-    status: 'active',
-  },
-  {
-    id: 'MEM-1041',
-    name: 'Kwame Mensah',
-    branch: 'Kumasi',
-    program: 'Sports & Fitness',
-    status: 'pending',
-  },
-  {
-    id: 'MEM-1040',
-    name: 'Efua Boateng',
-    branch: 'Tema Community',
-    program: 'Community Outreach',
-    status: 'active',
-  },
-  {
-    id: 'MEM-1039',
-    name: 'Kofi Adjei',
-    branch: 'Takoradi',
-    program: 'Skills Training',
-    status: 'active',
-  },
-  {
-    id: 'MEM-1038',
-    name: 'Abena Osei',
-    branch: 'Accra Central',
-    program: 'Summer Camp',
-    status: 'pending',
-  },
-]
 
 function statusBadgeClass(status: string): string {
   if (status === 'active') return 'badge-completed'
@@ -84,30 +19,59 @@ function statusLabel(status: string): string {
     .join(' ')
 }
 
-export function AnalyticsPage() {
-  const branchCount = getYmcaBranchCount()
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
 
+export function AnalyticsPage() {
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilterParams>({ scope: 'national' })
+  const [overview, setOverview] = useState<ProgressOverview | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [pendingVhsCount, setPendingVhsCount] = useState(0)
 
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-
     try {
-      const vhsData = await vhsApi.list({ limit: 1, status: 'pending' })
-      setPendingVhsCount(vhsData.total)
+      const data = await branchApi.progressOverview(scopeFilter)
+      setOverview(data)
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load analytics data.')
+      setError(err instanceof ApiError ? err.message : 'Failed to load progress data.')
+      setOverview(null)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [scopeFilter])
 
   useEffect(() => {
     void load()
   }, [load])
+
+  const goalLabel = useMemo(() => {
+    if (scopeFilter.scope === 'branch') return 'Branch membership goal'
+    if (scopeFilter.scope === 'region') return 'Regional membership goal'
+    return 'National membership goal'
+  }, [scopeFilter.scope])
+
+  const goalHint = useMemo(() => {
+    if (scopeFilter.scope === 'branch') {
+      return 'Each branch is expected to reach 50 members.'
+    }
+    if (scopeFilter.scope === 'region') {
+      return 'Regional target is 50 members per active branch in this region.'
+    }
+    return 'National YMCA target is 1,000 members (50 per branch).'
+  }, [scopeFilter.scope])
+
+  const scopeLabel = useMemo(() => {
+    if (scopeFilter.scope === 'branch' && overview?.branch_name) return overview.branch_name
+    if (scopeFilter.scope === 'region' && overview?.region_name) return overview.region_name
+    return 'National (All)'
+  }, [scopeFilter.scope, overview])
 
   return (
     <>
@@ -118,7 +82,47 @@ export function AnalyticsPage() {
         </div>
       )}
 
-      <MockDataBanner message="Membership and branch figures are sample data where no API exists yet." />
+      <ScopeFilterBar value={scopeFilter} onChange={setScopeFilter} />
+
+      <p className="text-muted" style={{ margin: '0 0 16px', fontSize: '0.9rem' }}>
+        Viewing progress for: <strong>{scopeLabel}</strong>
+      </p>
+
+      <section className="goal-card">
+        <div className="goal-card-hdr">
+          <div>
+            <p className="goal-eyebrow">Primary progress metric</p>
+            <h2 className="goal-title">{goalLabel}</h2>
+            <p className="goal-hint">{goalHint}</p>
+          </div>
+          <div className="goal-pct">
+            {loading ? '…' : `${overview?.member_progress_pct ?? 0}%`}
+          </div>
+        </div>
+        <div className="goal-counts">
+          <span className="goal-current">
+            {loading ? '…' : (overview?.total_members ?? 0).toLocaleString()}
+          </span>
+          <span className="goal-sep">/</span>
+          <span className="goal-target">
+            {loading ? '…' : (overview?.member_target ?? 0).toLocaleString()}
+          </span>
+          <span className="goal-unit">members</span>
+        </div>
+        <div className="goal-bar" aria-hidden="true">
+          <div
+            className="goal-bar-fill"
+            style={{ width: `${overview?.member_progress_pct ?? 0}%` }}
+          />
+        </div>
+        <p className="goal-remaining">
+          {loading
+            ? 'Calculating remaining members…'
+            : (overview?.members_remaining ?? 0) === 0
+              ? 'Membership goal reached for this scope.'
+              : `${(overview?.members_remaining ?? 0).toLocaleString()} members still needed to reach the target.`}
+        </p>
+      </section>
 
       <section className="stats-grid">
         <div className="stat-card">
@@ -126,7 +130,7 @@ export function AnalyticsPage() {
             <i className="ri-building-2-fill" />
           </div>
           <div>
-            <p className="stat-val">{branchCount}</p>
+            <p className="stat-val">{loading ? '…' : (overview?.branch_count ?? 0)}</p>
             <p className="stat-lbl">YMCA Branches</p>
           </div>
         </div>
@@ -135,17 +139,17 @@ export function AnalyticsPage() {
             <i className="ri-group-fill" />
           </div>
           <div>
-            <p className="stat-val">1,284</p>
+            <p className="stat-val">{loading ? '…' : (overview?.active_members ?? 0)}</p>
             <p className="stat-lbl">Active Members</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon icon-purple">
-            <i className="ri-calendar-event-fill" />
+            <i className="ri-user-unfollow-line" />
           </div>
           <div>
-            <p className="stat-val">12</p>
-            <p className="stat-lbl">Upcoming Programs</p>
+            <p className="stat-val">{loading ? '…' : (overview?.inactive_members ?? 0)}</p>
+            <p className="stat-lbl">Inactive Members</p>
           </div>
         </div>
         <div className="stat-card">
@@ -153,119 +157,157 @@ export function AnalyticsPage() {
             <i className="ri-time-fill" />
           </div>
           <div>
-            <p className="stat-val">{loading ? '…' : pendingVhsCount}</p>
+            <p className="stat-val">{loading ? '…' : (overview?.pending_vhs ?? 0)}</p>
             <p className="stat-lbl">Pending VHS</p>
           </div>
         </div>
       </section>
 
       <section className="mid-row">
-        <div className="card">
-          <div className="card-hdr">
-            <h2 className="card-title">Membership Overview</h2>
-            <span className="more-dots">···</span>
+        <div className="left-col">
+          <div className="card goal-progress-card">
+            <div className="card-hdr">
+              <h2 className="card-title">Goal Progress</h2>
+            </div>
+            <div className="donut-center">
+              <svg viewBox="0 0 200 200" className="donut-svg">
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#f0f0f0" strokeWidth="22" />
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="70"
+                  fill="none"
+                  stroke="#1e3a5f"
+                  strokeWidth="22"
+                  strokeDasharray={`${(overview?.member_progress_pct ?? 0) * 4.4} ${440 - (overview?.member_progress_pct ?? 0) * 4.4}`}
+                  strokeDashoffset="0"
+                  transform="rotate(-90 100 100)"
+                  strokeLinecap="round"
+                />
+                <text
+                  x="100"
+                  y="92"
+                  textAnchor="middle"
+                  fontSize="34"
+                  fontWeight="700"
+                  fill="#1a1a2e"
+                  fontFamily="Poppins,sans-serif"
+                >
+                  {overview?.member_progress_pct ?? 0}%
+                </text>
+                <text
+                  x="100"
+                  y="118"
+                  textAnchor="middle"
+                  fontSize="13"
+                  fill="#aaa"
+                  fontFamily="Poppins,sans-serif"
+                >
+                  of target
+                </text>
+              </svg>
+            </div>
+            <div className="donut-legend">
+              <span className="dl-item">
+                <span className="dl-dot" style={{ background: '#1e3a5f' }} />
+                Current ({overview?.total_members ?? 0})
+              </span>
+              <span className="dl-item">
+                <span className="dl-dot" style={{ background: '#e5e7eb' }} />
+                Remaining ({overview?.members_remaining ?? 0})
+              </span>
+            </div>
           </div>
-          <MockDataBanner message="No membership analytics endpoint exists yet — this chart shows sample proportions." />
-          <div className="donut-center">
-            <svg viewBox="0 0 200 200" className="donut-svg">
-              <circle cx="100" cy="100" r="70" fill="none" stroke="#f0f0f0" strokeWidth="22" />
-              <circle
-                cx="100"
-                cy="100"
-                r="70"
-                fill="none"
-                stroke="#ff6b4a"
-                strokeWidth="22"
-                strokeDasharray="44 396"
-                strokeDashoffset="0"
-                transform="rotate(-90 100 100)"
-                strokeLinecap="round"
-              />
-              <circle
-                cx="100"
-                cy="100"
-                r="70"
-                fill="none"
-                stroke="#ffc542"
-                strokeWidth="22"
-                strokeDasharray="44 396"
-                strokeDashoffset="-44"
-                transform="rotate(-90 100 100)"
-                strokeLinecap="round"
-              />
-              <circle
-                cx="100"
-                cy="100"
-                r="70"
-                fill="none"
-                stroke="#3dd598"
-                strokeWidth="22"
-                strokeDasharray="352 88"
-                strokeDashoffset="-88"
-                transform="rotate(-90 100 100)"
-                strokeLinecap="round"
-              />
-              <text
-                x="100"
-                y="94"
-                textAnchor="middle"
-                fontSize="28"
-                fontWeight="700"
-                fill="#1a1a2e"
-                fontFamily="Poppins,sans-serif"
-              >
-                72%
-              </text>
-              <text
-                x="100"
-                y="116"
-                textAnchor="middle"
-                fontSize="12"
-                fill="#aaa"
-                fontFamily="Poppins,sans-serif"
-              >
-                Active
-              </text>
-            </svg>
-          </div>
-          <div className="donut-legend">
-            <span className="dl-item">
-              <span className="dl-dot" style={{ background: '#3dd598' }} />
-              Active
-            </span>
-            <span className="dl-item">
-              <span className="dl-dot" style={{ background: '#ffc542' }} />
-              Pending
-            </span>
-            <span className="dl-item">
-              <span className="dl-dot" style={{ background: '#ff6b4a' }} />
-              Expired
-            </span>
+
+          <div className="card progress-insights-card">
+            <h2 className="card-title">Progress Insights</h2>
+            <div className="insight-list">
+              <div className="insight-row">
+                <div className="insight-icon icon-green">
+                  <i className="ri-checkbox-circle-fill" />
+                </div>
+                <div>
+                  <p className="insight-val">
+                    {loading
+                      ? '…'
+                      : `${overview?.branches_at_goal ?? 0} / ${overview?.branch_count ?? 0}`}
+                  </p>
+                  <p className="insight-lbl">Branches at 50-member goal</p>
+                </div>
+              </div>
+              <div className="insight-row">
+                <div className="insight-icon icon-blue">
+                  <i className="ri-bar-chart-grouped-fill" />
+                </div>
+                <div>
+                  <p className="insight-val">
+                    {loading ? '…' : (overview?.avg_members_per_branch ?? 0)}
+                  </p>
+                  <p className="insight-lbl">Avg members per branch</p>
+                </div>
+              </div>
+              <div className="insight-row">
+                <div className="insight-icon icon-teal">
+                  <i className="ri-user-heart-fill" />
+                </div>
+                <div>
+                  <p className="insight-val">
+                    {loading ? '…' : `${overview?.active_member_pct ?? 0}%`}
+                  </p>
+                  <p className="insight-lbl">Active membership rate</p>
+                </div>
+              </div>
+              <div className="insight-row">
+                <div className="insight-icon icon-orange">
+                  <i className="ri-hand-heart-fill" />
+                </div>
+                <div>
+                  <p className="insight-val">
+                    {loading ? '…' : (overview?.approved_vhs ?? 0)}
+                  </p>
+                  <p className="insight-lbl">Approved volunteer hours</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="right-col">
           <div className="card">
             <h2 className="card-title" style={{ marginBottom: 14 }}>
-              Most Active Branches This Month
+              Branch Goal Progress
             </h2>
-            <MockDataBanner message="No branch activity endpoint exists yet — preview data only." />
             <div className="riders-hdr">
               <span>Branch Name</span>
-              <span>New Members</span>
+              <span>Progress</span>
             </div>
-            {TOP_BRANCHES.map((branch) => (
-              <div key={branch.name} className="rider-row">
+            {(overview?.top_branches ?? []).map((branch) => (
+              <div key={branch.branch_id} className="rider-row">
                 <div className="rider-left">
-                  <img src={branch.avatar} alt={branch.name} className="avatar-sm" />
+                  <div className="avatar-sm" style={{ background: '#1e3a5f', color: '#fff', display: 'grid', placeItems: 'center' }}>
+                    <i className="ri-building-line" />
+                  </div>
                   <div>
-                    <p className="rider-name">{branch.name}</p>
-                    <p className="rider-email">{branch.region}</p>
+                    <p className="rider-name">{branch.branch_name}</p>
+                    <p className="rider-email">{branch.region_name}</p>
+                    <div className="branch-progress-bar" aria-hidden="true">
+                      <div
+                        className="branch-progress-fill"
+                        style={{ width: `${branch.member_progress_pct}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
-                <span className="rider-count">{branch.count}</span>
+                <span className="rider-count">
+                  {branch.member_count}/{branch.member_target}
+                </span>
               </div>
             ))}
+            {!loading && (overview?.top_branches.length ?? 0) === 0 && (
+              <div className="empty-state">
+                <i className="ri-inbox-line" /> No branch data
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -277,7 +319,6 @@ export function AnalyticsPage() {
             <i className="ri-refresh-line" />
           </button>
         </div>
-        <MockDataBanner message="No member registration feed exists yet — table shows sample records." />
         <div className="tbl-wrap">
           <table className="tbl">
             <thead>
@@ -285,7 +326,7 @@ export function AnalyticsPage() {
                 <th>Member ID</th>
                 <th>Name</th>
                 <th>Branch</th>
-                <th>Program</th>
+                <th>Registered</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -294,18 +335,18 @@ export function AnalyticsPage() {
                 <tr>
                   <td colSpan={5}>
                     <div className="empty-state">
-                      <i className="ri-loader-4-line spin" /> Loading analytics...
+                      <i className="ri-loader-4-line spin" /> Loading progress...
                     </div>
                   </td>
                 </tr>
               )}
               {!loading &&
-                RECENT_REGISTRATIONS.map((member) => (
+                (overview?.recent_registrations ?? []).map((member) => (
                   <tr key={member.id}>
-                    <td className="td-track">{member.id}</td>
+                    <td className="td-track">{member.member_id ?? member.id}</td>
                     <td>{member.name}</td>
-                    <td>{member.branch}</td>
-                    <td>{member.program}</td>
+                    <td>{member.branch_name ?? '—'}</td>
+                    <td>{formatDate(member.created_at)}</td>
                     <td>
                       <span className={`badge ${statusBadgeClass(member.status)}`}>
                         {statusLabel(member.status)}
@@ -313,7 +354,7 @@ export function AnalyticsPage() {
                     </td>
                   </tr>
                 ))}
-              {!loading && RECENT_REGISTRATIONS.length === 0 && (
+              {!loading && (overview?.recent_registrations.length ?? 0) === 0 && (
                 <tr>
                   <td colSpan={5}>
                     <div className="empty-state">

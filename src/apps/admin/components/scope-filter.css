@@ -1,0 +1,17 @@
+.scope-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.scope-filter-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.scope-filter-select {
+  min-width: 180px;
+  max-width: 240px;
+}

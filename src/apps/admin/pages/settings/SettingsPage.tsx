@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { adminBasePath } from '../../../../config/hosts'
 import { MockDataBanner } from '../../components/MockDataBanner'
+import { paymentApi } from '../../core/services'
+import { YMCA_BRANCHES } from '../../core/ymcaBranches'
+import { ApiError } from '../../core/utils/apiError'
 import '../../styles/admin-global.css'
 import './settings.css'
 
-type SettingsTab = 'general' | 'pricing' | 'ai' | 'notifications' | 'security'
+type SettingsTab = 'general' | 'pricing' | 'notifications' | 'security'
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -13,81 +16,75 @@ export function SettingsPage() {
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('general')
   const [saved, setSaved] = useState(false)
+  const [configLoading, setConfigLoading] = useState(false)
 
   const [general, setGeneral] = useState({
-    companyName: 'VoltGo Technologies Ltd.',
-    supportEmail: 'support@voltgo.com',
-    supportPhone: '+233 30 222 4455',
-    operatingCity: 'Accra',
+    organizationName: 'Young Men\'s Christian Association of Ghana',
+    shortName: 'YMCA Ghana',
+    supportEmail: 'info@ymcaghana.org',
+    supportPhone: '+233 30 222 1234',
+    headquarters: 'Castle Road, Adabraka, Accra (P.O. Box GP738)',
+    website: 'https://ymcaghana.org',
     defaultLanguage: 'English',
     timezone: 'GMT (Accra)',
   })
 
-  const cities = ['Accra', 'Kumasi', 'Tema', 'Takoradi']
-  const [enabledCities, setEnabledCities] = useState<Record<string, boolean>>({
-    Accra: true,
-    Kumasi: false,
-    Tema: false,
-    Takoradi: false,
-  })
-
   const [pricing, setPricing] = useState({
-    baseFareBicycle: 15,
-    baseFareMoto: 20,
-    perKmRate: 2.5,
-    surgeMin: 1.1,
-    surgeMax: 1.8,
-    surgeThreshold: 1.5,
-    longDistanceCredits: 2,
-  })
-
-  const [ai, setAi] = useState({
-    routeOptimizationEnabled: true,
-    reoptimizeIntervalSec: 60,
-    batchingEnabled: true,
-    maxBatchOrdersMoto: 3,
-    maxBatchOrdersBike: 1,
-    demandForecastEnabled: true,
-    speedAnomalyThreshold: 60,
-    idleAnomalyMinutes: 30,
-    etaAccuracyTargetMin: 5,
+    monthlyDuesGhs: 50,
+    annualAffiliationGhs: 200,
+    currency: 'GHS',
+    defaultProvider: 'moolre',
   })
 
   const [notifications, setNotifications] = useState({
-    orderAlerts: true,
-    riderSOS: true,
     vhsSubmissions: true,
     paymentFailures: true,
-    slaBreaches: true,
+    newMemberRegistrations: true,
+    duesReminders: true,
     weeklyReports: true,
-    marketingEmails: false,
+    newsPublished: false,
   })
 
   const [security, setSecurity] = useState({
-    twoFactorRequired: true,
+    twoFactorRequired: false,
     sessionTimeoutMin: 60,
     passwordExpiryDays: 90,
     ipRestrictionEnabled: false,
   })
 
   const loginHistory = [
-    { admin: 'Cephas', device: 'Chrome · Windows', location: 'Accra, GH', time: 'Just now', status: 'Success' },
+    { admin: 'Admin User', device: 'Chrome · Windows', location: 'Accra, GH', time: 'Just now', status: 'Success' },
     {
-      admin: 'Akosua Frimpong',
+      admin: 'Regional Admin',
       device: 'Safari · macOS',
-      location: 'Accra, GH',
-      time: '2h ago',
-      status: 'Success',
-    },
-    { admin: 'Unknown', device: 'Chrome · Android', location: 'Lagos, NG', time: '1d ago', status: 'Blocked' },
-    {
-      admin: 'Michael Asare',
-      device: 'Edge · Windows',
-      location: 'Tema, GH',
-      time: '2d ago',
+      location: 'Kumasi, GH',
+      time: '3h ago',
       status: 'Success',
     },
   ]
+
+  const loadPaymentConfig = useCallback(async () => {
+    setConfigLoading(true)
+    try {
+      const config = await paymentApi.config()
+      setPricing({
+        monthlyDuesGhs: config.monthly_dues_amount_ghs,
+        annualAffiliationGhs: config.annual_affiliation_amount_ghs,
+        currency: config.currency,
+        defaultProvider: config.default_provider,
+      })
+    } catch (err: unknown) {
+      console.warn('Could not load payment config:', err instanceof ApiError ? err.message : err)
+    } finally {
+      setConfigLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (activeTab === 'pricing') {
+      void loadPaymentConfig()
+    }
+  }, [activeTab, loadPaymentConfig])
 
   const setTab = (tab: SettingsTab) => {
     setActiveTab(tab)
@@ -111,21 +108,14 @@ export function SettingsPage() {
           className={`settings-nav-item${activeTab === 'general' ? ' settings-nav-active' : ''}`}
           onClick={() => setTab('general')}
         >
-          <i className="ri-building-line" /> General
+          <i className="ri-building-line" /> Organization Profile
         </button>
         <button
           type="button"
           className={`settings-nav-item${activeTab === 'pricing' ? ' settings-nav-active' : ''}`}
           onClick={() => setTab('pricing')}
         >
-          <i className="ri-price-tag-3-line" /> Pricing & Surge
-        </button>
-        <button
-          type="button"
-          className={`settings-nav-item${activeTab === 'ai' ? ' settings-nav-active' : ''}`}
-          onClick={() => setTab('ai')}
-        >
-          <i className="ri-robot-2-line" /> AI Settings
+          <i className="ri-price-tag-3-line" /> Affiliation Fees
         </button>
         <button
           type="button"
@@ -147,21 +137,33 @@ export function SettingsPage() {
         {activeTab === 'general' && (
           <div className="card">
             <div className="card-hdr">
-              <h2 className="card-title">Company Profile</h2>
+              <h2 className="card-title">Organization Profile</h2>
             </div>
 
-            <MockDataBanner />
+            <MockDataBanner message="Organization profile fields are preview-only until a settings API is connected." />
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Company Name</label>
+                <label className="form-label">Organization Name</label>
                 <input
                   type="text"
                   className="form-input"
-                  value={general.companyName}
-                  onChange={(e) => setGeneral((g) => ({ ...g, companyName: e.target.value }))}
+                  value={general.organizationName}
+                  onChange={(e) => setGeneral((g) => ({ ...g, organizationName: e.target.value }))}
                 />
               </div>
+              <div className="form-group">
+                <label className="form-label">Short Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={general.shortName}
+                  onChange={(e) => setGeneral((g) => ({ ...g, shortName: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Support Email</label>
                 <input
@@ -171,9 +173,6 @@ export function SettingsPage() {
                   onChange={(e) => setGeneral((g) => ({ ...g, supportEmail: e.target.value }))}
                 />
               </div>
-            </div>
-
-            <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Support Phone</label>
                 <input
@@ -181,6 +180,28 @@ export function SettingsPage() {
                   className="form-input"
                   value={general.supportPhone}
                   onChange={(e) => setGeneral((g) => ({ ...g, supportPhone: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">National Headquarters</label>
+              <input
+                type="text"
+                className="form-input"
+                value={general.headquarters}
+                onChange={(e) => setGeneral((g) => ({ ...g, headquarters: e.target.value }))}
+              />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Website</label>
+                <input
+                  type="url"
+                  className="form-input"
+                  value={general.website}
+                  onChange={(e) => setGeneral((g) => ({ ...g, website: e.target.value }))}
                 />
               </div>
               <div className="form-group">
@@ -208,21 +229,16 @@ export function SettingsPage() {
               </select>
             </div>
 
-            <h3 className="settings-subhdr">Operating Cities</h3>
+            <h3 className="settings-subhdr">Regional Branches</h3>
             <p className="settings-hint">
-              Enable cities where VoltGo currently operates. Per the rollout plan, Accra launches first, expanding to
-              Kumasi, Tema, and Takoradi.
+              YMCA Ghana operates through regional offices and local branches across the country.
             </p>
             <div className="city-grid">
-              {cities.map((city) => (
-                <label className="city-toggle" key={city}>
-                  <span>{city}</span>
-                  <input
-                    type="checkbox"
-                    checked={enabledCities[city]}
-                    onChange={(e) => setEnabledCities((c) => ({ ...c, [city]: e.target.checked }))}
-                  />
-                </label>
+              {YMCA_BRANCHES.map((branch) => (
+                <div className="city-toggle" key={branch.id} style={{ cursor: 'default' }}>
+                  <span>{branch.name}</span>
+                  <span style={{ fontSize: 11, color: '#888' }}>{branch.region}</span>
+                </div>
               ))}
             </div>
           </div>
@@ -231,215 +247,67 @@ export function SettingsPage() {
         {activeTab === 'pricing' && (
           <div className="card">
             <div className="card-hdr">
-              <h2 className="card-title">Base Pricing</h2>
+              <h2 className="card-title">Membership & Affiliation Fees</h2>
             </div>
 
-            <MockDataBanner />
+            <MockDataBanner message="Fee amounts are loaded from the payment service. Saving updated amounts will require a backend settings endpoint — contact your administrator to change live values via environment configuration." />
 
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Base Fare — Bicycle (GHS)</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={pricing.baseFareBicycle}
-                  onChange={(e) => setPricing((p) => ({ ...p, baseFareBicycle: Number(e.target.value) }))}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Base Fare — E-Motorcycle (GHS)</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={pricing.baseFareMoto}
-                  onChange={(e) => setPricing((p) => ({ ...p, baseFareMoto: Number(e.target.value) }))}
-                />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Per KM Rate (GHS)</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={pricing.perKmRate}
-                  step={0.1}
-                  onChange={(e) => setPricing((p) => ({ ...p, perKmRate: Number(e.target.value) }))}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Long-Distance Credit Cost</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={pricing.longDistanceCredits}
-                  onChange={(e) => setPricing((p) => ({ ...p, longDistanceCredits: Number(e.target.value) }))}
-                />
-              </div>
-            </div>
+            {configLoading ? (
+              <p className="settings-hint">Loading current fee configuration…</p>
+            ) : (
+              <>
+                <p className="settings-hint">
+                  Set the amounts members pay for monthly dues and annual affiliation through the member app.
+                </p>
 
-            <h3 className="settings-subhdr">Dynamic Surge Pricing</h3>
-            <p className="settings-hint">
-              Surge activates automatically when the demand-to-supply ratio exceeds the threshold below, per zone.
-            </p>
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Surge Trigger Threshold (demand:supply)</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={pricing.surgeThreshold}
-                  step={0.1}
-                  onChange={(e) => setPricing((p) => ({ ...p, surgeThreshold: Number(e.target.value) }))}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Min Surge Multiplier</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={pricing.surgeMin}
-                  step={0.1}
-                  onChange={(e) => setPricing((p) => ({ ...p, surgeMin: Number(e.target.value) }))}
-                />
-              </div>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Max Surge Multiplier (cap)</label>
-              <input
-                type="number"
-                className="form-input"
-                value={pricing.surgeMax}
-                step={0.1}
-                onChange={(e) => setPricing((p) => ({ ...p, surgeMax: Number(e.target.value) }))}
-              />
-            </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Monthly Membership Dues ({pricing.currency})</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      min={0}
+                      step={0.01}
+                      value={pricing.monthlyDuesGhs}
+                      onChange={(e) =>
+                        setPricing((p) => ({ ...p, monthlyDuesGhs: Number(e.target.value) }))
+                      }
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Annual Affiliation Fee ({pricing.currency})</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      min={0}
+                      step={0.01}
+                      value={pricing.annualAffiliationGhs}
+                      onChange={(e) =>
+                        setPricing((p) => ({ ...p, annualAffiliationGhs: Number(e.target.value) }))
+                      }
+                    />
+                  </div>
+                </div>
 
-            <div className="surge-preview">
-              <i className="ri-flashlight-line" />
-              Surge will range between <strong>{pricing.surgeMin}x</strong> and <strong>{pricing.surgeMax}x</strong>{' '}
-              when demand exceeds <strong>{pricing.surgeThreshold}:1</strong> in a zone.
-            </div>
-          </div>
-        )}
+                <div className="form-group">
+                  <label className="form-label">Payment Provider</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={pricing.defaultProvider}
+                    readOnly
+                    style={{ background: '#f5f6fa' }}
+                  />
+                </div>
 
-        {activeTab === 'ai' && (
-          <div className="card">
-            <div className="card-hdr">
-              <h2 className="card-title">Route Optimization Engine</h2>
-            </div>
-
-            <MockDataBanner />
-
-            <div className="toggle-row">
-              <div>
-                <p className="toggle-label">AI Route Optimization</p>
-                <p className="toggle-sub">Use OR-Tools VRPTW solver to optimize rider routes</p>
-              </div>
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  checked={ai.routeOptimizationEnabled}
-                  onChange={(e) => setAi((a) => ({ ...a, routeOptimizationEnabled: e.target.checked }))}
-                />
-                <span className="switch-slider" />
-              </label>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Re-optimization Interval (seconds)</label>
-              <input
-                type="number"
-                className="form-input"
-                value={ai.reoptimizeIntervalSec}
-                disabled={!ai.routeOptimizationEnabled}
-                onChange={(e) => setAi((a) => ({ ...a, reoptimizeIntervalSec: Number(e.target.value) }))}
-              />
-            </div>
-
-            <div className="toggle-row">
-              <div>
-                <p className="toggle-label">Order Batching</p>
-                <p className="toggle-sub">Combine nearby orders onto a single rider trip</p>
-              </div>
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  checked={ai.batchingEnabled}
-                  onChange={(e) => setAi((a) => ({ ...a, batchingEnabled: e.target.checked }))}
-                />
-                <span className="switch-slider" />
-              </label>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Max Batch Orders — E-Motorcycle</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={ai.maxBatchOrdersMoto}
-                  disabled={!ai.batchingEnabled}
-                  onChange={(e) => setAi((a) => ({ ...a, maxBatchOrdersMoto: Number(e.target.value) }))}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Max Batch Orders — Bicycle</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={ai.maxBatchOrdersBike}
-                  disabled={!ai.batchingEnabled}
-                  onChange={(e) => setAi((a) => ({ ...a, maxBatchOrdersBike: Number(e.target.value) }))}
-                />
-              </div>
-            </div>
-
-            <div className="toggle-row">
-              <div>
-                <p className="toggle-label">Demand Forecasting</p>
-                <p className="toggle-sub">Predict order demand by zone and hour for proactive rider positioning</p>
-              </div>
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  checked={ai.demandForecastEnabled}
-                  onChange={(e) => setAi((a) => ({ ...a, demandForecastEnabled: e.target.checked }))}
-                />
-                <span className="switch-slider" />
-              </label>
-            </div>
-
-            <h3 className="settings-subhdr">AI Safety Monitoring</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Speed Anomaly Threshold (km/h)</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={ai.speedAnomalyThreshold}
-                  onChange={(e) => setAi((a) => ({ ...a, speedAnomalyThreshold: Number(e.target.value) }))}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Idle Anomaly Threshold (minutes)</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={ai.idleAnomalyMinutes}
-                  onChange={(e) => setAi((a) => ({ ...a, idleAnomalyMinutes: Number(e.target.value) }))}
-                />
-              </div>
-            </div>
-            <div className="form-group">
-              <label className="form-label">ETA Accuracy Target (± minutes)</label>
-              <input
-                type="number"
-                className="form-input"
-                value={ai.etaAccuracyTargetMin}
-                onChange={(e) => setAi((a) => ({ ...a, etaAccuracyTargetMin: Number(e.target.value) }))}
-              />
-            </div>
+                <div className="surge-preview">
+                  <i className="ri-information-line" />
+                  Members are charged <strong>{pricing.currency} {pricing.monthlyDuesGhs.toFixed(2)}</strong> for
+                  monthly dues and <strong>{pricing.currency} {pricing.annualAffiliationGhs.toFixed(2)}</strong> for
+                  annual affiliation.
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -451,34 +319,6 @@ export function SettingsPage() {
 
             <MockDataBanner />
 
-            <div className="toggle-row">
-              <div>
-                <p className="toggle-label">New Order Alerts</p>
-                <p className="toggle-sub">Notify when a new order is placed</p>
-              </div>
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  checked={notifications.orderAlerts}
-                  onChange={(e) => setNotifications((n) => ({ ...n, orderAlerts: e.target.checked }))}
-                />
-                <span className="switch-slider" />
-              </label>
-            </div>
-            <div className="toggle-row">
-              <div>
-                <p className="toggle-label">Rider SOS Alerts</p>
-                <p className="toggle-sub">Immediate alert on rider emergency button press</p>
-              </div>
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  checked={notifications.riderSOS}
-                  onChange={(e) => setNotifications((n) => ({ ...n, riderSOS: e.target.checked }))}
-                />
-                <span className="switch-slider" />
-              </label>
-            </div>
             <div className="toggle-row">
               <div>
                 <p className="toggle-label">New VHS Submissions</p>
@@ -496,7 +336,7 @@ export function SettingsPage() {
             <div className="toggle-row">
               <div>
                 <p className="toggle-label">Payment Failures</p>
-                <p className="toggle-sub">Notify on failed Mobile Money or card transactions</p>
+                <p className="toggle-sub">Notify on failed dues or affiliation payments</p>
               </div>
               <label className="switch">
                 <input
@@ -509,14 +349,30 @@ export function SettingsPage() {
             </div>
             <div className="toggle-row">
               <div>
-                <p className="toggle-label">SLA Breaches</p>
-                <p className="toggle-sub">Notify when an order exceeds promised ETA</p>
+                <p className="toggle-label">New Member Registrations</p>
+                <p className="toggle-sub">Notify when a new member joins through the app</p>
               </div>
               <label className="switch">
                 <input
                   type="checkbox"
-                  checked={notifications.slaBreaches}
-                  onChange={(e) => setNotifications((n) => ({ ...n, slaBreaches: e.target.checked }))}
+                  checked={notifications.newMemberRegistrations}
+                  onChange={(e) =>
+                    setNotifications((n) => ({ ...n, newMemberRegistrations: e.target.checked }))
+                  }
+                />
+                <span className="switch-slider" />
+              </label>
+            </div>
+            <div className="toggle-row">
+              <div>
+                <p className="toggle-label">Dues & Affiliation Reminders</p>
+                <p className="toggle-sub">Alert when members have overdue payments</p>
+              </div>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={notifications.duesReminders}
+                  onChange={(e) => setNotifications((n) => ({ ...n, duesReminders: e.target.checked }))}
                 />
                 <span className="switch-slider" />
               </label>
@@ -524,7 +380,7 @@ export function SettingsPage() {
             <div className="toggle-row">
               <div>
                 <p className="toggle-label">Weekly Report Emails</p>
-                <p className="toggle-sub">Auto-send scheduled analytics reports</p>
+                <p className="toggle-sub">Auto-send membership and finance summary reports</p>
               </div>
               <label className="switch">
                 <input
@@ -537,14 +393,14 @@ export function SettingsPage() {
             </div>
             <div className="toggle-row">
               <div>
-                <p className="toggle-label">Marketing Emails</p>
-                <p className="toggle-sub">Product updates and announcements</p>
+                <p className="toggle-label">News Published</p>
+                <p className="toggle-sub">Notify when a news post or event is published</p>
               </div>
               <label className="switch">
                 <input
                   type="checkbox"
-                  checked={notifications.marketingEmails}
-                  onChange={(e) => setNotifications((n) => ({ ...n, marketingEmails: e.target.checked }))}
+                  checked={notifications.newsPublished}
+                  onChange={(e) => setNotifications((n) => ({ ...n, newsPublished: e.target.checked }))}
                 />
                 <span className="switch-slider" />
               </label>
@@ -654,18 +510,18 @@ export function SettingsPage() {
         )}
 
         <div className="save-bar">
-            {saved && (
-              <span className="save-confirm">
-                <i className="ri-checkbox-circle-fill" /> Settings saved
-              </span>
-            )}
-            <button type="button" className="btn-outline">
-              Discard Changes
-            </button>
-            <button type="button" className="btn-green" onClick={saveSettings}>
-              <i className="ri-save-line" /> Save Changes
-            </button>
-          </div>
+          {saved && (
+            <span className="save-confirm">
+              <i className="ri-checkbox-circle-fill" /> Settings saved
+            </span>
+          )}
+          <button type="button" className="btn-outline">
+            Discard Changes
+          </button>
+          <button type="button" className="btn-green" onClick={saveSettings}>
+            <i className="ri-save-line" /> Save Changes
+          </button>
+        </div>
       </div>
     </div>
   )

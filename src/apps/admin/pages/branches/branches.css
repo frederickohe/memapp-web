@@ -1,0 +1,86 @@
+.branches-page .branches-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.branches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.branch-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.branch-card-hdr {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.branch-card-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.branch-card-region {
+  font-size: 0.8rem;
+  color: var(--text-muted, #6b7280);
+  margin-top: 2px;
+}
+
+.branch-card-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted, #6b7280);
+  margin-bottom: 8px;
+}
+
+.branch-card-president {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--surface-muted, #f9fafb);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-top: 10px;
+}
+
+.branch-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.branches-regions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.region-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  background: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.region-chip.active {
+  background: var(--primary, #1e3a5f);
+  color: #fff;
+  border-color: var(--primary, #1e3a5f);
+}

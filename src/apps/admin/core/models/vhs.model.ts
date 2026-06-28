@@ -1,3 +1,5 @@
+import type { ScopeFilterParams } from './branch.model'
+
 export type VhsStatus = 'pending' | 'approved' | 'rejected'
 
 export interface VolunteerHoursSubmission {
@@ -31,7 +33,7 @@ export interface VhsSubmissionListData {
   submissions: VolunteerHoursSubmission[]
 }
 
-export interface VhsSubmissionListParams {
+export interface VhsSubmissionListParams extends ScopeFilterParams {
   page?: number
   limit?: number
   status?: VhsStatus

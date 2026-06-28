@@ -2,6 +2,21 @@
    YMCA DASHBOARD PAGE
    ================================================ */
 
+.dashboard-stats {
+  margin-bottom: 22px;
+}
+
+.stat-card-link {
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.stat-card-link:hover {
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.1);
+  transform: translateY(-1px);
+}
+
 /* ---------- CARD BASE ---------- */
 .card {
   background: #fff;

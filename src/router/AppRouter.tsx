@@ -9,8 +9,12 @@ import { DashboardPage } from '../apps/admin/pages/dashboard/DashboardPage'
 import { AnalyticsPage } from '../apps/admin/pages/analytics/AnalyticsPage'
 import { FinancePage } from '../apps/admin/pages/finance/FinancePage'
 import { VhsPage } from '../apps/admin/pages/vhs/VhsPage'
-import { CustomersPage } from '../apps/admin/pages/customers/CustomersPage'
+import { FormsPage } from '../apps/admin/pages/forms/FormsPage'
+import { ProgramsPage } from '../apps/admin/pages/programs/ProgramsPage'
+import { NewsPage } from '../apps/admin/pages/news/NewsPage'
+import { UsersPage } from '../apps/admin/pages/users/UsersPage'
 import { MessagesPage } from '../apps/admin/pages/messages/MessagesPage'
+import { BranchesPage } from '../apps/admin/pages/branches/BranchesPage'
 import { UserRolesPage } from '../apps/admin/pages/user-roles/UserRolesPage'
 import { SettingsPage } from '../apps/admin/pages/settings/SettingsPage'
 import { WebsiteLayout } from '../apps/website/WebsiteLayout'
@@ -36,7 +40,11 @@ function LocalRoutes() {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="finance" element={<FinancePage />} />
             <Route path="vhs" element={<VhsPage />} />
-            <Route path="customers" element={<CustomersPage />} />
+            <Route path="forms" element={<FormsPage />} />
+            <Route path="programs" element={<ProgramsPage />} />
+            <Route path="news" element={<NewsPage />} />
+            <Route path="users" element={<UsersPage />} />
+            <Route path="branches" element={<BranchesPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="user-roles" element={<UserRolesPage />} />
             <Route path="settings" element={<SettingsPage />} />
@@ -65,7 +73,11 @@ function ProductionAdminRoutes() {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="finance" element={<FinancePage />} />
             <Route path="vhs" element={<VhsPage />} />
-            <Route path="customers" element={<CustomersPage />} />
+            <Route path="forms" element={<FormsPage />} />
+            <Route path="programs" element={<ProgramsPage />} />
+            <Route path="news" element={<NewsPage />} />
+            <Route path="users" element={<UsersPage />} />
+            <Route path="branches" element={<BranchesPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="user-roles" element={<UserRolesPage />} />
             <Route path="settings" element={<SettingsPage />} />

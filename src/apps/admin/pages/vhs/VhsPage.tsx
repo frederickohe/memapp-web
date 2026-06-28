@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ScopeFilterBar } from '../../components/ScopeFilterBar'
 import { vhsApi } from '../../core/services'
-import type { VolunteerHoursSubmission, VhsStatus } from '../../core/models'
+import type { ScopeFilterParams, VolunteerHoursSubmission, VhsStatus } from '../../core/models'
 import { ApiError } from '../../core/utils/apiError'
 import './vhs.css'
 
@@ -57,6 +58,7 @@ export function VhsPage() {
 
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending')
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilterParams>({ scope: 'national' })
 
   const load = useCallback(
     async (targetPage = 1) => {
@@ -68,6 +70,7 @@ export function VhsPage() {
           page: targetPage,
           limit: 20,
           status: statusFilter === 'All' ? undefined : statusFilter,
+          ...scopeFilter,
         })
         setSubmissions(data.submissions)
         setTotal(data.total)
@@ -79,7 +82,7 @@ export function VhsPage() {
         setLoading(false)
       }
     },
-    [statusFilter],
+    [statusFilter, scopeFilter],
   )
 
   useEffect(() => {
@@ -170,6 +173,8 @@ export function VhsPage() {
 
   return (
     <>
+      <ScopeFilterBar value={scopeFilter} onChange={setScopeFilter} />
+
       <section className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon icon-orange">

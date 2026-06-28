@@ -1,6 +1,8 @@
 import { API_ENDPOINTS } from './api.constants'
 import { mapBackendAdminToProfile, toAdminLoginData } from './authMappers'
 import { apiData, apiRequest } from './apiClient'
+import { getAppConfig } from './appConfig'
+import { ApiError, extractErrorMessage } from './utils/apiError'
 import type {
   ActivatePaymentRequest,
   AdminLoginData,
@@ -17,6 +19,8 @@ import type {
   CreateAdminUserRequest,
   CreateRoleRequest,
   PaginationParams,
+  PaymentOverview,
+  PaymentConfig,
   Permission,
   RejectVhsRequest,
   ResetAdminUserPasswordRequest,
@@ -28,9 +32,43 @@ import type {
   UpdateRoleRequest,
   UpdateSettingRequest,
   UpdateSettingResponseData,
+  MemberUser,
+  MemberUserListData,
+  MemberUserListParams,
+  MemberUserOverview,
+  UpdateMemberUserRequest,
   VolunteerHoursSubmission,
   VhsSubmissionListData,
   VhsSubmissionListParams,
+  Form,
+  FormDetail,
+  FormListData,
+  FormListParams,
+  FormResponsesListData,
+  FormResponsesParams,
+  FormAnalytics,
+  CreateFormRequest,
+  UpdateFormRequest,
+  ProgramDetail,
+  ProgramListData,
+  ProgramListParams,
+  CreateProgramRequest,
+  UpdateProgramRequest,
+  FileUploadResponse,
+  NewsItem,
+  NewsListData,
+  NewsListParams,
+  CreateNewsRequest,
+  UpdateNewsRequest,
+  Branch,
+  Region,
+  CreateBranchRequest,
+  UpdateBranchRequest,
+  AssignPresidentRequest,
+  ScopeFilterParams,
+  ProgressOverview,
+  BroadcastMessageRequest,
+  BroadcastMessageResponse,
 } from './models'
 import { storage } from './utils/storage'
 
@@ -116,7 +154,7 @@ export const paymentApi = {
       payments: rawItems.map((p) => ({
         id: p.id as string,
         reference: (p.paystack_ref ?? p.reference ?? '—') as string,
-        customer: p.customer,
+        user: (p.user ?? p.customer) as AdminPaymentListData['payments'][0]['user'],
         type: p.type,
         method: (p.method ?? null) as string | undefined,
         amount: parseFloat(String(p.amount_ghs ?? p.amount ?? '0')),
@@ -125,11 +163,17 @@ export const paymentApi = {
       })),
     } as AdminPaymentListData
   },
+  overview() {
+    return apiData<PaymentOverview>(API_ENDPOINTS.adminPayments.overview)
+  },
   activate(payload: ActivatePaymentRequest) {
     return apiData<unknown>(API_ENDPOINTS.adminPayments.activate, {
       method: 'POST',
       body: JSON.stringify(payload),
     })
+  },
+  config() {
+    return apiData<PaymentConfig>(API_ENDPOINTS.payments.config)
   },
 }
 
@@ -220,6 +264,41 @@ export const adminUserApi = {
   },
 }
 
+export const memberUserApi = {
+  overview(params: ScopeFilterParams = {}) {
+    return apiData<MemberUserOverview>(API_ENDPOINTS.adminMembers.overview, {
+      params: params as Record<string, string | number | boolean | undefined>,
+    })
+  },
+  async list(params: MemberUserListParams = {}) {
+    const res = await apiRequest<{ data: MemberUserListData }>(API_ENDPOINTS.adminMembers.list, {
+      params: params as Record<string, string | number | boolean | undefined>,
+    })
+    const d = res.data
+    return {
+      total: d.total,
+      page: d.page,
+      pages: d.pages,
+      users: d.users ?? [],
+    }
+  },
+  getById(id: string) {
+    return apiData<MemberUser>(API_ENDPOINTS.adminMembers.detail(id))
+  },
+  update(id: string, payload: UpdateMemberUserRequest) {
+    return apiData<MemberUser>(API_ENDPOINTS.adminMembers.update(id), {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  },
+  deactivate(id: string) {
+    return apiRequest<ApiSimpleSuccess>(API_ENDPOINTS.adminMembers.deactivate(id), {
+      method: 'POST',
+      body: '{}',
+    })
+  },
+}
+
 export const settingsApi = {
   list() {
     return apiData<SystemSetting[]>(API_ENDPOINTS.adminSettings.list)
@@ -227,6 +306,232 @@ export const settingsApi = {
   update(key: SettingKey, payload: UpdateSettingRequest) {
     return apiData<UpdateSettingResponseData>(API_ENDPOINTS.adminSettings.update(key), {
       method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  },
+}
+
+export const formApi = {
+  async list(params: FormListParams = {}) {
+    return apiRequest<FormListData>(API_ENDPOINTS.forms.list, {
+      params: params as Record<string, string | number | boolean | undefined>,
+    })
+  },
+  getById(id: string) {
+    return apiRequest<Form>(API_ENDPOINTS.forms.detail(id))
+  },
+  getDetail(id: string) {
+    return apiRequest<FormDetail>(API_ENDPOINTS.forms.detailWithCount(id))
+  },
+  create(payload: CreateFormRequest) {
+    return apiRequest<Form>(API_ENDPOINTS.forms.create, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+  update(id: string, payload: UpdateFormRequest) {
+    return apiRequest<Form>(API_ENDPOINTS.forms.update(id), {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  },
+  delete(id: string) {
+    return apiRequest<{ message: string }>(API_ENDPOINTS.forms.delete(id), {
+      method: 'DELETE',
+    })
+  },
+  async listResponses(formId: string, params: FormResponsesParams = {}) {
+    return apiRequest<FormResponsesListData>(API_ENDPOINTS.forms.responses(formId), {
+      params: params as Record<string, string | number | boolean | undefined>,
+    })
+  },
+  getAnalytics(formId: string) {
+    return apiRequest<FormAnalytics>(API_ENDPOINTS.forms.analytics(formId))
+  },
+  async exportResponses(formId: string, filename: string) {
+    const baseUrl = getAppConfig().apiBaseUrl
+    const token = storage.getItem('token')
+    const response = await fetch(`${baseUrl}${API_ENDPOINTS.forms.export(formId)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    if (!response.ok) {
+      const text = await response.text()
+      let body: unknown = text
+      try {
+        body = JSON.parse(text)
+      } catch {
+        /* keep text */
+      }
+      throw new ApiError(
+        extractErrorMessage(response.status, body, response.statusText),
+        response.status,
+        body,
+      )
+    }
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  },
+}
+
+export const programApi = {
+  async list(params: ProgramListParams = {}) {
+    return apiRequest<ProgramListData>(API_ENDPOINTS.programs.list, {
+      params: params as Record<string, string | number | boolean | undefined>,
+    })
+  },
+  getById(id: string) {
+    return apiRequest<ProgramDetail>(API_ENDPOINTS.programs.detail(id))
+  },
+  create(payload: CreateProgramRequest) {
+    return apiRequest<ProgramDetail>(API_ENDPOINTS.programs.create, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+  update(id: string, payload: UpdateProgramRequest) {
+    return apiRequest<ProgramDetail>(API_ENDPOINTS.programs.update(id), {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  },
+  delete(id: string) {
+    return apiRequest<{ message: string }>(API_ENDPOINTS.programs.delete(id), {
+      method: 'DELETE',
+    })
+  },
+}
+
+export const newsApi = {
+  async list(params: NewsListParams = {}) {
+    return apiRequest<NewsListData>(API_ENDPOINTS.news.list, {
+      params: params as Record<string, string | number | boolean | undefined>,
+    })
+  },
+  getById(id: string) {
+    return apiRequest<NewsItem>(API_ENDPOINTS.news.detail(id))
+  },
+  create(payload: CreateNewsRequest) {
+    return apiRequest<NewsItem>(API_ENDPOINTS.news.create, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+  update(id: string, payload: UpdateNewsRequest) {
+    return apiRequest<NewsItem>(API_ENDPOINTS.news.update(id), {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  },
+  publish(id: string) {
+    return apiRequest<NewsItem>(API_ENDPOINTS.news.publish(id), { method: 'POST' })
+  },
+  unpublish(id: string) {
+    return apiRequest<NewsItem>(API_ENDPOINTS.news.unpublish(id), { method: 'POST' })
+  },
+  delete(id: string) {
+    return apiRequest<{ message: string }>(API_ENDPOINTS.news.delete(id), {
+      method: 'DELETE',
+    })
+  },
+}
+
+export const storageApi = {
+  async upload(file: File): Promise<FileUploadResponse> {
+    const baseUrl = getAppConfig().apiBaseUrl
+    const token = storage.getItem('token')
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch(`${baseUrl}${API_ENDPOINTS.storage.upload}`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    })
+
+    const text = await response.text()
+    let body: unknown = text
+    try {
+      body = JSON.parse(text)
+    } catch {
+      /* keep text */
+    }
+
+    if (!response.ok) {
+      throw new ApiError(
+        extractErrorMessage(response.status, body, response.statusText),
+        response.status,
+        body,
+      )
+    }
+
+    return body as FileUploadResponse
+  },
+}
+
+export const branchApi = {
+  async listRegions(activeOnly = true) {
+    const data = await apiData<{ regions: Region[] }>(API_ENDPOINTS.adminBranches.regions, {
+      params: { active_only: activeOnly },
+    })
+    return data.regions ?? []
+  },
+  createRegion(payload: { name: string }) {
+    return apiData<Region>(API_ENDPOINTS.adminBranches.regions, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+  updateRegion(id: string, payload: { name?: string; is_active?: boolean }) {
+    return apiData<Region>(API_ENDPOINTS.adminBranches.region(id), {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  },
+  async listBranches(regionId?: string, activeOnly = true) {
+    const data = await apiData<{ branches: Branch[] }>(API_ENDPOINTS.adminBranches.branches, {
+      params: {
+        region_id: regionId,
+        active_only: activeOnly,
+      },
+    })
+    return data.branches ?? []
+  },
+  getBranch(id: string) {
+    return apiData<Branch>(API_ENDPOINTS.adminBranches.branch(id))
+  },
+  createBranch(payload: CreateBranchRequest) {
+    return apiData<Branch>(API_ENDPOINTS.adminBranches.branches, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+  updateBranch(id: string, payload: UpdateBranchRequest) {
+    return apiData<Branch>(API_ENDPOINTS.adminBranches.branch(id), {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  },
+  assignPresident(id: string, payload: AssignPresidentRequest) {
+    return apiData<Branch>(API_ENDPOINTS.adminBranches.assignPresident(id), {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+  progressOverview(params: ScopeFilterParams = {}) {
+    return apiData<ProgressOverview>(API_ENDPOINTS.adminBranches.progress, {
+      params: params as Record<string, string | number | boolean | undefined>,
+    })
+  },
+  broadcast(payload: BroadcastMessageRequest) {
+    return apiData<BroadcastMessageResponse>(API_ENDPOINTS.adminBranches.broadcast, {
+      method: 'POST',
       body: JSON.stringify(payload),
     })
   },
