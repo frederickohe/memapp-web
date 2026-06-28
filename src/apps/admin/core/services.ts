@@ -8,9 +8,6 @@ import type {
   AdminPaymentListData,
   AdminPaymentListParams,
   AdminProfile,
-  AdminRider,
-  AdminRiderListData,
-  AdminRiderListParams,
   AdminUserListData,
   AdminUserListItem,
   ApiSimpleSuccess,
@@ -21,7 +18,7 @@ import type {
   CreateRoleRequest,
   PaginationParams,
   Permission,
-  RejectRiderRequest,
+  RejectVhsRequest,
   ResetAdminUserPasswordRequest,
   Role,
   SetRolePermissionsRequest,
@@ -31,6 +28,9 @@ import type {
   UpdateRoleRequest,
   UpdateSettingRequest,
   UpdateSettingResponseData,
+  VolunteerHoursSubmission,
+  VhsSubmissionListData,
+  VhsSubmissionListParams,
 } from './models'
 import { storage } from './utils/storage'
 
@@ -73,41 +73,32 @@ export const authApi = {
   },
 }
 
-export const riderApi = {
-  async list(params: AdminRiderListParams = {}) {
-    const data = await apiData<AdminRiderListData>(API_ENDPOINTS.adminRiders.list, {
+export const vhsApi = {
+  async list(params: VhsSubmissionListParams = {}) {
+    const data = await apiData<VhsSubmissionListData>(API_ENDPOINTS.adminVhs.list, {
       params: params as Record<string, string | number | boolean | undefined>,
     })
     return {
       total: data.total,
       page: data.page,
       pages: data.pages,
-      riders: data.riders ?? data.items ?? [],
+      submissions: data.submissions ?? [],
     }
   },
   getById(id: string) {
-    return apiData<AdminRider>(API_ENDPOINTS.adminRiders.detail(id))
+    return apiData<VolunteerHoursSubmission>(API_ENDPOINTS.adminVhs.detail(id))
   },
   approve(id: string) {
-    return apiData<AdminRider>(API_ENDPOINTS.adminRiders.approve(id), { method: 'POST', body: '{}' })
+    return apiData<VolunteerHoursSubmission>(API_ENDPOINTS.adminVhs.approve(id), {
+      method: 'POST',
+      body: '{}',
+    })
   },
-  reject(id: string, payload: RejectRiderRequest) {
-    return apiData<AdminRider>(API_ENDPOINTS.adminRiders.reject(id), {
+  reject(id: string, payload: RejectVhsRequest) {
+    return apiData<VolunteerHoursSubmission>(API_ENDPOINTS.adminVhs.reject(id), {
       method: 'POST',
       body: JSON.stringify(payload),
     })
-  },
-  activate(id: string) {
-    return apiData<AdminRider>(API_ENDPOINTS.adminRiders.activate(id), { method: 'POST', body: '{}' })
-  },
-  suspend(id: string) {
-    return apiData<AdminRider>(API_ENDPOINTS.adminRiders.suspend(id), { method: 'POST', body: '{}' })
-  },
-  deactivate(id: string) {
-    return apiData<AdminRider>(API_ENDPOINTS.adminRiders.deactivate(id), { method: 'POST', body: '{}' })
-  },
-  resetStatus(id: string) {
-    return apiData<AdminRider>(API_ENDPOINTS.adminRiders.resetStatus(id), { method: 'PUT', body: '{}' })
   },
 }
 

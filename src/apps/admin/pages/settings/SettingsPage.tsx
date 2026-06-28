@@ -56,7 +56,7 @@ export function SettingsPage() {
   const [notifications, setNotifications] = useState({
     orderAlerts: true,
     riderSOS: true,
-    kycSubmissions: true,
+    vhsSubmissions: true,
     paymentFailures: true,
     slaBreaches: true,
     weeklyReports: true,
@@ -481,14 +481,14 @@ export function SettingsPage() {
             </div>
             <div className="toggle-row">
               <div>
-                <p className="toggle-label">New KYC Submissions</p>
-                <p className="toggle-sub">Notify when a rider submits documents for review</p>
+                <p className="toggle-label">New VHS Submissions</p>
+                <p className="toggle-sub">Notify when a member submits volunteer hours for review</p>
               </div>
               <label className="switch">
                 <input
                   type="checkbox"
-                  checked={notifications.kycSubmissions}
-                  onChange={(e) => setNotifications((n) => ({ ...n, kycSubmissions: e.target.checked }))}
+                  checked={notifications.vhsSubmissions}
+                  onChange={(e) => setNotifications((n) => ({ ...n, vhsSubmissions: e.target.checked }))}
                 />
                 <span className="switch-slider" />
               </label>

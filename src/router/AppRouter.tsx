@@ -8,7 +8,7 @@ import { ChangePasswordPage } from '../apps/admin/pages/auth/ChangePasswordPage'
 import { DashboardPage } from '../apps/admin/pages/dashboard/DashboardPage'
 import { AnalyticsPage } from '../apps/admin/pages/analytics/AnalyticsPage'
 import { FinancePage } from '../apps/admin/pages/finance/FinancePage'
-import { KycPage } from '../apps/admin/pages/kyc/KycPage'
+import { VhsPage } from '../apps/admin/pages/vhs/VhsPage'
 import { CustomersPage } from '../apps/admin/pages/customers/CustomersPage'
 import { MessagesPage } from '../apps/admin/pages/messages/MessagesPage'
 import { UserRolesPage } from '../apps/admin/pages/user-roles/UserRolesPage'
@@ -35,7 +35,7 @@ function LocalRoutes() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="finance" element={<FinancePage />} />
-            <Route path="kyc" element={<KycPage />} />
+            <Route path="vhs" element={<VhsPage />} />
             <Route path="customers" element={<CustomersPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="user-roles" element={<UserRolesPage />} />
@@ -64,7 +64,7 @@ function ProductionAdminRoutes() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="finance" element={<FinancePage />} />
-            <Route path="kyc" element={<KycPage />} />
+            <Route path="vhs" element={<VhsPage />} />
             <Route path="customers" element={<CustomersPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="user-roles" element={<UserRolesPage />} />

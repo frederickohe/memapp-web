@@ -21,11 +21,15 @@ export interface BackendAdminProfileResponse {
   email: string
   phone_number?: string | null
   user_type: string
-  role?: string | null
+  role?: { id: string; name: string } | string | null
+  role_id?: string | null
   profile_picture_url?: string | null
   enabled: boolean
+  reset_required?: boolean
   status: string
   created_at: string
+  assigned_region?: string | null
+  assigned_branch?: string | null
 }
 
 export interface AdminRoleSummary {

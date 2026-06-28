@@ -1,22 +1,26 @@
 import type { AdminLoginData, AdminProfile, BackendAdminProfileResponse } from './models'
 
-function normalizeRoleName(role: string): string {
-  return role.toLowerCase().replace(/_/g, '_')
+function resolveRole(admin: BackendAdminProfileResponse): { id: string; name: string } {
+  if (admin.role && typeof admin.role === 'object') {
+    return { id: admin.role.id, name: admin.role.name }
+  }
+
+  const legacyRole = typeof admin.role === 'string' ? admin.role : 'super_admin'
+  const normalized = legacyRole.toLowerCase()
+  return {
+    id: admin.role_id ?? normalized,
+    name: normalized,
+  }
 }
 
 export function mapBackendAdminToProfile(admin: BackendAdminProfileResponse): AdminProfile {
-  const roleName = admin.role ?? 'ADMIN'
-
   return {
     id: admin.id,
     full_name: admin.fullname,
     email: admin.email,
     phone: admin.phone_number ?? undefined,
-    reset_required: false,
-    role: {
-      id: roleName,
-      name: normalizeRoleName(roleName),
-    },
+    reset_required: admin.reset_required ?? false,
+    role: resolveRole(admin),
   }
 }
 

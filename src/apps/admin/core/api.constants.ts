@@ -23,15 +23,11 @@ export const API_ENDPOINTS = {
     delete: (id: string) => `/admin/roles/${id}`,
     setPermissions: (id: string) => `/admin/roles/${id}/permissions`,
   },
-  adminRiders: {
-    list: '/admin/riders',
-    detail: (id: string) => `/admin/riders/${id}`,
-    approve: (id: string) => `/admin/riders/${id}/approve`,
-    reject: (id: string) => `/admin/riders/${id}/reject`,
-    activate: (id: string) => `/admin/riders/${id}/activate`,
-    suspend: (id: string) => `/admin/riders/${id}/suspend`,
-    deactivate: (id: string) => `/admin/riders/${id}/deactivate`,
-    resetStatus: (id: string) => `/admin/riders/${id}/reset-status`,
+  adminVhs: {
+    list: '/admin/vhs-submissions',
+    detail: (id: string) => `/admin/vhs-submissions/${id}`,
+    approve: (id: string) => `/admin/vhs-submissions/${id}/approve`,
+    reject: (id: string) => `/admin/vhs-submissions/${id}/reject`,
   },
   adminSettings: {
     list: '/admin/settings',

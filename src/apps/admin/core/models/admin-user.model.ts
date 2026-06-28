@@ -25,6 +25,8 @@ export interface CreateAdminUserRequest {
   password: string
   role_id: string
   reset_required: boolean
+  assigned_region?: string
+  assigned_branch?: string
 }
 
 export interface UpdateAdminUserRequest {

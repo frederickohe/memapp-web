@@ -1,12 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { AdminUserListItem, Permission, Role } from '../../core/models'
 import { adminUserApi, roleApi } from '../../core/services'
+import { YMCA_BRANCHES } from '../../core/ymcaBranches'
 import { ApiError } from '../../core/utils/apiError'
 import { formatTimeAgo } from '../../core/utils/formatTimeAgo'
 import '../../styles/admin-global.css'
 import './user-roles.css'
 
 const ROLE_COLORS = ['#8b5cf6', '#3b82f6', '#22c55e', '#f97316', '#06b6d4', '#9ca3af', '#ec4899', '#eab308']
+
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: 'Super Admin',
+  national_admin: 'National Admin',
+  regional_admin: 'Regional Admin',
+  branch_admin: 'Branch Admin',
+}
+
+function roleLabel(name: string): string {
+  return ROLE_LABELS[name] ?? titleCase(name.replace(/_/g, ' '))
+}
 
 function generateTempPassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$'
@@ -40,7 +52,14 @@ export function UserRolesPage() {
   const [createdUserCredentials, setCreatedUserCredentials] = useState<{ email: string; password: string } | null>(
     null,
   )
-  const [newAdminUser, setNewAdminUser] = useState({ full_name: '', email: '', phone: '', role_id: '' })
+  const [newAdminUser, setNewAdminUser] = useState({
+    full_name: '',
+    email: '',
+    phone: '',
+    role_id: '',
+    assigned_region: '',
+    assigned_branch: '',
+  })
 
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('All')
@@ -184,7 +203,14 @@ export function UserRolesPage() {
   }
 
   const openCreateUserModal = () => {
-    setNewAdminUser({ full_name: '', email: '', phone: '', role_id: roles[0]?.id ?? '' })
+    setNewAdminUser({
+      full_name: '',
+      email: '',
+      phone: '',
+      role_id: roles[0]?.id ?? '',
+      assigned_region: '',
+      assigned_branch: '',
+    })
     setUserActionError(null)
     setCreatedUserCredentials(null)
     setShowCreateUserModal(true)
@@ -196,8 +222,18 @@ export function UserRolesPage() {
   }
 
   const createAdminUser = async () => {
-    const { full_name, email, phone, role_id } = newAdminUser
+    const { full_name, email, phone, role_id, assigned_region, assigned_branch } = newAdminUser
     if (!full_name.trim() || !email.trim() || !phone.trim() || !role_id) return
+
+    const selectedRole = roles.find((r) => r.id === role_id)
+    if (selectedRole?.name === 'regional_admin' && !assigned_region.trim()) {
+      setUserActionError('Regional admins must have an assigned region.')
+      return
+    }
+    if (selectedRole?.name === 'branch_admin' && !assigned_branch.trim()) {
+      setUserActionError('Branch admins must have an assigned branch.')
+      return
+    }
 
     const tempPassword = generateTempPassword()
 
@@ -212,6 +248,8 @@ export function UserRolesPage() {
         password: tempPassword,
         role_id,
         reset_required: true,
+        assigned_region: assigned_region.trim() || undefined,
+        assigned_branch: assigned_branch.trim() || undefined,
       })
       setCreatedUserCredentials({ email: email.trim(), password: tempPassword })
       void loadAll()
@@ -323,7 +361,7 @@ export function UserRolesPage() {
                   <span className="role-dot" style={{ background: roleColor(i) }} />
                   <span className="role-access-tag">{role.is_system ? 'System role' : 'Custom role'}</span>
                 </div>
-                <h3 className="role-name">{role.name}</h3>
+                <h3 className="role-name">{roleLabel(role.name)}</h3>
                 <p className="role-desc">{role.description || 'No description provided.'}</p>
                 <div className="role-footer">
                   <span>
@@ -356,7 +394,7 @@ export function UserRolesPage() {
               <option value="All">All Roles</option>
               {roles.map((r) => (
                 <option key={r.id} value={r.id}>
-                  {r.name}
+                  {roleLabel(r.name)}
                 </option>
               ))}
             </select>
@@ -397,7 +435,7 @@ export function UserRolesPage() {
                     <td>{u.email}</td>
                     <td>
                       <span className="role-pill" style={{ background: `${color}1A`, color }}>
-                        {u.role.name}
+                        {roleLabel(u.role.name)}
                       </span>
                     </td>
                     <td>{formatTimeAgo(u.last_login_at)}</td>
@@ -437,7 +475,7 @@ export function UserRolesPage() {
           <div className="modal-box modal-wide" onClick={(e) => e.stopPropagation()}>
             <div className="modal-hdr">
               <div>
-                <h3 className="modal-title">{selectedRole?.name}</h3>
+                <h3 className="modal-title">{selectedRole ? roleLabel(selectedRole.name) : ''}</h3>
                 <p className="modal-sub" style={{ margin: '2px 0 0' }}>
                   {selectedRole?.is_system ? 'System role' : 'Custom role'}
                 </p>
@@ -597,11 +635,49 @@ export function UserRolesPage() {
                   >
                     {roles.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.name}
+                        {roleLabel(r.name)}
                       </option>
                     ))}
                   </select>
                 </div>
+                {roles.find((r) => r.id === newAdminUser.role_id)?.name === 'regional_admin' && (
+                  <div className="form-group">
+                    <label className="form-label">Assigned Region</label>
+                    <select
+                      className="form-select"
+                      value={newAdminUser.assigned_region}
+                      onChange={(e) =>
+                        setNewAdminUser((u) => ({ ...u, assigned_region: e.target.value }))
+                      }
+                    >
+                      <option value="">Select region</option>
+                      {[...new Set(YMCA_BRANCHES.map((b) => b.region))].map((region) => (
+                        <option key={region} value={region}>
+                          {region}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {roles.find((r) => r.id === newAdminUser.role_id)?.name === 'branch_admin' && (
+                  <div className="form-group">
+                    <label className="form-label">Assigned Branch</label>
+                    <select
+                      className="form-select"
+                      value={newAdminUser.assigned_branch}
+                      onChange={(e) =>
+                        setNewAdminUser((u) => ({ ...u, assigned_branch: e.target.value }))
+                      }
+                    >
+                      <option value="">Select branch</option>
+                      {YMCA_BRANCHES.map((branch) => (
+                        <option key={branch.id} value={branch.name}>
+                          {branch.name} ({branch.region})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <p className="perm-note">
                   <i className="ri-information-line" /> A temporary password will be generated automatically. The new
                   admin will be required to change it on first login.

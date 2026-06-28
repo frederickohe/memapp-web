@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { riderApi } from '../../core/services'
-import type { AdminRider, KycStatus } from '../../core/models'
+import { vhsApi } from '../../core/services'
+import type { VolunteerHoursSubmission, VhsStatus } from '../../core/models'
 import { ApiError } from '../../core/utils/apiError'
-import './kyc.css'
+import './vhs.css'
 
-type StatusFilter = 'All' | KycStatus
+type StatusFilter = 'All' | VhsStatus
 
 function formatSubmittedAt(value: string): string {
   const date = new Date(value)
@@ -21,27 +21,35 @@ function formatSubmittedAt(value: string): string {
   return `${datePart} · ${timePart}`
 }
 
-function kycStatusLabel(status: KycStatus): string {
+function formatVolunteerDate(value: string): string {
+  return new Date(value).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function vhsStatusLabel(status: VhsStatus): string {
   if (status === 'approved') return 'Approved'
   if (status === 'rejected') return 'Rejected'
   return 'Pending'
 }
 
-function kycBadgeClass(status: KycStatus): string {
+function vhsBadgeClass(status: VhsStatus): string {
   if (status === 'approved') return 'badge-active'
   if (status === 'rejected') return 'badge-cancelled'
   return 'badge-warning'
 }
 
-export function KycPage() {
-  const [submissions, setSubmissions] = useState<AdminRider[]>([])
+export function VhsPage() {
+  const [submissions, setSubmissions] = useState<VolunteerHoursSubmission[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [pages, setPages] = useState(1)
 
-  const [selectedSubmission, setSelectedSubmission] = useState<AdminRider | null>(null)
+  const [selectedSubmission, setSelectedSubmission] = useState<VolunteerHoursSubmission | null>(null)
   const [actionPending, setActionPending] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [showRejectModal, setShowRejectModal] = useState(false)
@@ -56,17 +64,17 @@ export function KycPage() {
       setError(null)
 
       try {
-        const data = await riderApi.list({
+        const data = await vhsApi.list({
           page: targetPage,
           limit: 20,
-          kyc_status: statusFilter === 'All' ? undefined : statusFilter,
+          status: statusFilter === 'All' ? undefined : statusFilter,
         })
-        setSubmissions(data.riders)
+        setSubmissions(data.submissions)
         setTotal(data.total)
         setPage(data.page)
         setPages(data.pages || 1)
       } catch (err: unknown) {
-        setError(err instanceof ApiError ? err.message : 'Failed to load KYC submissions.')
+        setError(err instanceof ApiError ? err.message : 'Failed to load volunteer hours submissions.')
       } finally {
         setLoading(false)
       }
@@ -82,20 +90,24 @@ export function KycPage() {
     const term = searchTerm.trim().toLowerCase()
     if (!term) return submissions
     return submissions.filter(
-      (s) => s.full_name.toLowerCase().includes(term) || s.id.toLowerCase().includes(term),
+      (s) =>
+        s.member_name.toLowerCase().includes(term) ||
+        s.id.toLowerCase().includes(term) ||
+        (s.member_id ?? '').toLowerCase().includes(term) ||
+        s.activity_name.toLowerCase().includes(term),
     )
   }, [submissions, searchTerm])
 
   const pendingCount = useMemo(
-    () => submissions.filter((s) => s.kyc_status === 'pending').length,
+    () => submissions.filter((s) => s.status === 'pending').length,
     [submissions],
   )
   const approvedCount = useMemo(
-    () => submissions.filter((s) => s.kyc_status === 'approved').length,
+    () => submissions.filter((s) => s.status === 'approved').length,
     [submissions],
   )
   const rejectedCount = useMemo(
-    () => submissions.filter((s) => s.kyc_status === 'rejected').length,
+    () => submissions.filter((s) => s.status === 'rejected').length,
     [submissions],
   )
 
@@ -104,7 +116,7 @@ export function KycPage() {
     void load(target)
   }
 
-  const reviewSubmission = (submission: AdminRider) => {
+  const reviewSubmission = (submission: VolunteerHoursSubmission) => {
     setSelectedSubmission(submission)
     setActionError(null)
   }
@@ -120,7 +132,7 @@ export function KycPage() {
     setActionError(null)
 
     try {
-      const updated = await riderApi.approve(selectedSubmission.id)
+      const updated = await vhsApi.approve(selectedSubmission.id)
       setSubmissions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
       closeReview()
     } catch (err: unknown) {
@@ -145,7 +157,7 @@ export function KycPage() {
 
     setActionPending(true)
     try {
-      const updated = await riderApi.reject(selectedSubmission.id, { reason })
+      const updated = await vhsApi.reject(selectedSubmission.id, { reason })
       setSubmissions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
       setShowRejectModal(false)
       closeReview()
@@ -161,7 +173,7 @@ export function KycPage() {
       <section className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon icon-orange">
-            <i className="ri-file-shield-2-line" />
+            <i className="ri-time-line" />
           </div>
           <div>
             <p className="stat-val">{pendingCount}</p>
@@ -199,13 +211,13 @@ export function KycPage() {
 
       <section className="card table-card">
         <div className="card-hdr">
-          <h2 className="card-title">KYC Submissions</h2>
+          <h2 className="card-title">VHS Submissions</h2>
           <div className="filter-bar">
             <div className="search-box">
               <i className="ri-search-line" />
               <input
                 type="text"
-                placeholder="Search applicant or ID..."
+                placeholder="Search member, activity, or ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -230,9 +242,10 @@ export function KycPage() {
           <table className="tbl">
             <thead>
               <tr>
-                <th>Applicant</th>
-                <th>Vehicle Type</th>
-                <th>Ghana Card No.</th>
+                <th>Member</th>
+                <th>Activity</th>
+                <th>Hours</th>
+                <th>Volunteer Date</th>
                 <th>Submitted</th>
                 <th>Status</th>
                 <th />
@@ -241,7 +254,7 @@ export function KycPage() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <div className="empty-state">
                       <i className="ri-loader-4-line spin" /> Loading submissions...
                     </div>
@@ -250,7 +263,7 @@ export function KycPage() {
               )}
               {!loading && error && (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <div className="empty-state">
                       <i className="ri-error-warning-line" /> {error}
                     </div>
@@ -264,27 +277,31 @@ export function KycPage() {
                     <td>
                       <div className="cust-left">
                         <img
-                          src={s.avatar_url || `https://i.pravatar.cc/48?u=${s.id}`}
-                          alt={s.full_name}
+                          src={s.member_avatar_url || `https://i.pravatar.cc/48?u=${s.user_id}`}
+                          alt={s.member_name}
                           className="avatar-sm"
                         />
                         <div>
-                          <p className="cell-name">{s.full_name}</p>
-                          <p className="cell-sub">{s.id}</p>
+                          <p className="cell-name">{s.member_name}</p>
+                          <p className="cell-sub">{s.member_id || s.id}</p>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <span className="vehicle-tag">
-                        <i className={s.vehicle_type === 'bicycle' ? 'ri-bike-line' : 'ri-e-bike-2-line'} />
-                        {s.vehicle_type === 'bicycle' ? 'Bicycle' : 'E-Motorcycle'}
+                      <p className="cell-name">{s.activity_name}</p>
+                      <p className="cell-sub">{s.branch || s.member_branch || '—'}</p>
+                    </td>
+                    <td>
+                      <span className="hours-tag">
+                        <i className="ri-time-line" />
+                        {s.hours}h
                       </span>
                     </td>
-                    <td>{s.ghana_card_no || '—'}</td>
+                    <td>{formatVolunteerDate(s.volunteer_date)}</td>
                     <td>{formatSubmittedAt(s.created_at)}</td>
                     <td>
-                      <span className={`badge ${kycBadgeClass(s.kyc_status)}`}>
-                        {kycStatusLabel(s.kyc_status)}
+                      <span className={`badge ${vhsBadgeClass(s.status)}`}>
+                        {vhsStatusLabel(s.status)}
                       </span>
                     </td>
                     <td>
@@ -305,7 +322,7 @@ export function KycPage() {
                 ))}
               {!loading && !error && filteredSubmissions.length === 0 && (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <div className="empty-state">
                       <i className="ri-inbox-line" />
                       No submissions match your filters
@@ -344,7 +361,7 @@ export function KycPage() {
         <div className="drawer-overlay" onClick={closeReview}>
           <div className="drawer-box" onClick={(e) => e.stopPropagation()}>
             <div className="drawer-hdr">
-              <h3 className="modal-title">KYC Review</h3>
+              <h3 className="modal-title">Volunteer Hours Review</h3>
               <button type="button" className="modal-close" onClick={closeReview}>
                 <i className="ri-close-line" />
               </button>
@@ -359,20 +376,24 @@ export function KycPage() {
 
             <div className="profile-top">
               <img
-                src={selectedSubmission.avatar_url || `https://i.pravatar.cc/64?u=${selectedSubmission.id}`}
-                alt={selectedSubmission.full_name}
+                src={
+                  selectedSubmission.member_avatar_url ||
+                  `https://i.pravatar.cc/64?u=${selectedSubmission.user_id}`
+                }
+                alt={selectedSubmission.member_name}
                 className="avatar-lg"
               />
               <div>
-                <p className="profile-name">{selectedSubmission.full_name}</p>
+                <p className="profile-name">{selectedSubmission.member_name}</p>
                 <p className="profile-id">
-                  {selectedSubmission.id} · {formatSubmittedAt(selectedSubmission.created_at)}
+                  {selectedSubmission.member_id || selectedSubmission.id} ·{' '}
+                  {formatSubmittedAt(selectedSubmission.created_at)}
                 </p>
                 <span
-                  className={`badge ${kycBadgeClass(selectedSubmission.kyc_status)}`}
+                  className={`badge ${vhsBadgeClass(selectedSubmission.status)}`}
                   style={{ marginTop: 6 }}
                 >
-                  {kycStatusLabel(selectedSubmission.kyc_status)}
+                  {vhsStatusLabel(selectedSubmission.status)}
                 </span>
               </div>
             </div>
@@ -380,56 +401,71 @@ export function KycPage() {
             <div className="info-grid">
               <div className="info-item">
                 <span className="info-label">Phone</span>
-                <span className="info-value">{selectedSubmission.phone}</span>
+                <span className="info-value">{selectedSubmission.member_phone || '—'}</span>
               </div>
               <div className="info-item">
-                <span className="info-label">Vehicle Type</span>
+                <span className="info-label">Branch</span>
                 <span className="info-value">
-                  {selectedSubmission.vehicle_type === 'bicycle' ? 'Bicycle' : 'E-Motorcycle'}
+                  {selectedSubmission.branch || selectedSubmission.member_branch || '—'}
                 </span>
               </div>
-              <div className="info-item" style={{ gridColumn: '1 / -1' }}>
-                <span className="info-label">Ghana Card No.</span>
-                <span className="info-value">{selectedSubmission.ghana_card_no || '—'}</span>
+              <div className="info-item">
+                <span className="info-label">Hours Volunteered</span>
+                <span className="info-value">{selectedSubmission.hours} hours</span>
               </div>
-            </div>
-
-            <h4 className="section-sub-title">Submitted Documents</h4>
-            <div className="doc-grid">
-              {selectedSubmission.ghana_card_front_url && (
-                <div className="doc-item">
-                  <img src={selectedSubmission.ghana_card_front_url} alt="Ghana Card Front" />
-                  <span>Ghana Card (Front)</span>
-                </div>
-              )}
-              {selectedSubmission.ghana_card_back_url && (
-                <div className="doc-item">
-                  <img src={selectedSubmission.ghana_card_back_url} alt="Ghana Card Back" />
-                  <span>Ghana Card (Back)</span>
-                </div>
-              )}
-              {selectedSubmission.drivers_license_url && (
-                <div className="doc-item">
-                  <img src={selectedSubmission.drivers_license_url} alt="Driver's License" />
-                  <span>Driver&apos;s License</span>
-                </div>
-              )}
-              {!selectedSubmission.ghana_card_front_url && !selectedSubmission.ghana_card_back_url && (
-                <div className="doc-item doc-missing">
-                  <i className="ri-file-warning-line" />
-                  <span>Document images not returned by this endpoint</span>
+              <div className="info-item">
+                <span className="info-label">Volunteer Date</span>
+                <span className="info-value">{formatVolunteerDate(selectedSubmission.volunteer_date)}</span>
+              </div>
+              <div className="info-item" style={{ gridColumn: '1 / -1' }}>
+                <span className="info-label">Activity</span>
+                <span className="info-value">{selectedSubmission.activity_name}</span>
+              </div>
+              {selectedSubmission.activity_description && (
+                <div className="info-item" style={{ gridColumn: '1 / -1' }}>
+                  <span className="info-label">Description</span>
+                  <span className="info-value">{selectedSubmission.activity_description}</span>
                 </div>
               )}
             </div>
 
-            {selectedSubmission.kyc_status === 'rejected' && selectedSubmission.kyc_rejection_reason && (
-              <div className="rejection-note">
-                <i className="ri-close-circle-fill" />
-                <span>{selectedSubmission.kyc_rejection_reason}</span>
+            {selectedSubmission.status === 'pending' && selectedSubmission.points_to_award != null && (
+              <div className="points-preview">
+                <i className="ri-medal-line" />
+                Approving will award {selectedSubmission.points_to_award} points (10 pts/hour)
               </div>
             )}
 
-            {selectedSubmission.kyc_status === 'pending' && (
+            {selectedSubmission.status === 'approved' && selectedSubmission.points_awarded != null && (
+              <div className="points-preview">
+                <i className="ri-medal-line" />
+                {selectedSubmission.points_awarded} points awarded
+              </div>
+            )}
+
+            <h4 className="section-sub-title">Supporting Document</h4>
+            <div className="doc-grid">
+              {selectedSubmission.proof_document_url ? (
+                <div className="doc-item">
+                  <img src={selectedSubmission.proof_document_url} alt="Proof of volunteer hours" />
+                  <span>Proof of volunteer hours</span>
+                </div>
+              ) : (
+                <div className="doc-item doc-missing">
+                  <i className="ri-file-warning-line" />
+                  <span>No supporting document attached</span>
+                </div>
+              )}
+            </div>
+
+            {selectedSubmission.status === 'rejected' && selectedSubmission.rejection_reason && (
+              <div className="rejection-note">
+                <i className="ri-close-circle-fill" />
+                <span>{selectedSubmission.rejection_reason}</span>
+              </div>
+            )}
+
+            {selectedSubmission.status === 'pending' && (
               <div className="drawer-actions">
                 <button
                   type="button"
@@ -445,7 +481,7 @@ export function KycPage() {
                   disabled={actionPending}
                   onClick={() => void approve()}
                 >
-                  <i className="ri-check-line" /> Approve
+                  <i className="ri-check-line" /> Approve &amp; Award Points
                 </button>
               </div>
             )}
@@ -468,7 +504,7 @@ export function KycPage() {
               <textarea
                 className="form-textarea"
                 rows={3}
-                placeholder="e.g. Ghana Card image unreadable"
+                placeholder="e.g. Hours cannot be verified without supervisor signature"
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
               />
