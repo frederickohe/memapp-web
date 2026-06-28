@@ -23,7 +23,8 @@ npm run dev
 ```
 
 - Website: http://localhost:5173/
-- Admin (local path): http://localhost:5173/admin
+- Admin login: http://localhost:5173/admin/login
+- Admin dashboard: http://localhost:5173/admin/dashboard
 
 ## Build
 
@@ -38,5 +39,7 @@ Output is written to `dist/`. Caddy serves this folder for both `ymemberapp.com`
 Copy `.env.example` to `.env.local` and adjust as needed:
 
 ```bash
-VITE_API_BASE_URL=https://api.ymemberapp.com
+VITE_API_BASE_URL=http://localhost:3090
 ```
+
+The admin login page calls `POST /api/v1/auth/admin/signin` and loads the profile from `GET /api/v1/auth/admin/me`.

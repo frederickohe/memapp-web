@@ -1,44 +1,78 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { isAdminHost } from '../config/hosts'
+import { AdminApp } from '../apps/admin/AdminApp'
 import { AdminLayout } from '../apps/admin/AdminLayout'
-import { DashboardPage } from '../apps/admin/pages/DashboardPage'
-import { PlaceholderPage } from '../apps/admin/pages/PlaceholderPage'
+import { RequireAuth, RequireGuest } from '../apps/admin/guards'
+import { LoginPage } from '../apps/admin/pages/auth/LoginPage'
+import { ChangePasswordPage } from '../apps/admin/pages/auth/ChangePasswordPage'
+import { DashboardPage } from '../apps/admin/pages/dashboard/DashboardPage'
+import { AnalyticsPage } from '../apps/admin/pages/analytics/AnalyticsPage'
+import { FinancePage } from '../apps/admin/pages/finance/FinancePage'
+import { KycPage } from '../apps/admin/pages/kyc/KycPage'
+import { CustomersPage } from '../apps/admin/pages/customers/CustomersPage'
+import { MessagesPage } from '../apps/admin/pages/messages/MessagesPage'
+import { UserRolesPage } from '../apps/admin/pages/user-roles/UserRolesPage'
+import { SettingsPage } from '../apps/admin/pages/settings/SettingsPage'
 import { WebsiteLayout } from '../apps/website/WebsiteLayout'
 import { HomePage } from '../apps/website/pages/HomePage'
 
-function AdminRoutes() {
+function LocalRoutes() {
   return (
     <Routes>
-      <Route element={<AdminLayout />}>
-        <Route index element={<DashboardPage />} />
-        <Route
-          path="members"
-          element={
-            <PlaceholderPage
-              title="Members"
-              description="Member management screens will live here."
-            />
-          }
-        />
-        <Route
-          path="programs"
-          element={
-            <PlaceholderPage
-              title="Programs"
-              description="Program creation and enrollment tools will live here."
-            />
-          }
-        />
-        <Route
-          path="forms"
-          element={
-            <PlaceholderPage
-              title="Forms"
-              description="Form builder and response review will live here."
-            />
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
+      <Route element={<WebsiteLayout />}>
+        <Route index element={<HomePage />} />
+      </Route>
+
+      <Route path="/admin" element={<AdminApp />}>
+        <Route element={<RequireGuest />}>
+          <Route path="login" element={<LoginPage />} />
+        </Route>
+
+        <Route element={<RequireAuth />}>
+          <Route path="change-password" element={<ChangePasswordPage />} />
+          <Route element={<AdminLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="finance" element={<FinancePage />} />
+            <Route path="kyc" element={<KycPage />} />
+            <Route path="customers" element={<CustomersPage />} />
+            <Route path="messages" element={<MessagesPage />} />
+            <Route path="user-roles" element={<UserRolesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+        </Route>
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
+
+function ProductionAdminRoutes() {
+  return (
+    <Routes>
+      <Route element={<AdminApp />}>
+        <Route element={<RequireGuest />}>
+          <Route path="login" element={<LoginPage />} />
+        </Route>
+
+        <Route element={<RequireAuth />}>
+          <Route path="change-password" element={<ChangePasswordPage />} />
+          <Route element={<AdminLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="finance" element={<FinancePage />} />
+            <Route path="kyc" element={<KycPage />} />
+            <Route path="customers" element={<CustomersPage />} />
+            <Route path="messages" element={<MessagesPage />} />
+            <Route path="user-roles" element={<UserRolesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+        </Route>
+
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>
     </Routes>
   )
@@ -55,57 +89,17 @@ function WebsiteRoutes() {
   )
 }
 
-function LocalAdminRoutes() {
-  return (
-    <Routes>
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<DashboardPage />} />
-        <Route
-          path="members"
-          element={
-            <PlaceholderPage
-              title="Members"
-              description="Member management screens will live here."
-            />
-          }
-        />
-        <Route
-          path="programs"
-          element={
-            <PlaceholderPage
-              title="Programs"
-              description="Program creation and enrollment tools will live here."
-            />
-          }
-        />
-        <Route
-          path="forms"
-          element={
-            <PlaceholderPage
-              title="Forms"
-              description="Form builder and response review will live here."
-            />
-          }
-        />
-      </Route>
-      <Route element={<WebsiteLayout />}>
-        <Route index element={<HomePage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
-    </Routes>
-  )
-}
-
 export function AppRouter() {
   const hostname = window.location.hostname
   const useLocalPaths = hostname === 'localhost' || hostname === '127.0.0.1'
+  const onAdminHost = isAdminHost()
 
   return (
     <BrowserRouter>
       {useLocalPaths ? (
-        <LocalAdminRoutes />
-      ) : isAdminHost() ? (
-        <AdminRoutes />
+        <LocalRoutes />
+      ) : onAdminHost ? (
+        <ProductionAdminRoutes />
       ) : (
         <WebsiteRoutes />
       )}

@@ -1,0 +1,449 @@
+/* ================================================
+   VOLTGO DASHBOARD PAGE - dashboard.component.css
+   ================================================ */
+
+/* ---------- STATS GRID ---------- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.03);
+  position: relative;
+}
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.icon-blue   { background: #eff6ff; color: #3b82f6; }
+.icon-orange { background: #fff7ed; color: #f97316; }
+.icon-purple { background: #f5f3ff; color: #8b5cf6; }
+.icon-green  { background: #f0fdf4; color: #22c55e; }
+
+.stat-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+  line-height: 1.2;
+}
+.stat-lbl {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+.trend-pill {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.trend-up   { color: #22c55e; background: #f0fdf4; }
+.trend-down { color: #ef4444; background: #fef2f2; }
+
+/* ---------- MIDDLE ROW ---------- */
+.mid-row {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+  margin-bottom: 22px;
+  align-items: stretch;
+}
+
+.right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.map-card {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- CARD BASE ---------- */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px 22px 18px;
+  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.03);
+}
+
+.card-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+.more-dots {
+  font-size: 18px;
+  color: #ccc;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+
+/* ---------- MAP CARD ---------- */
+.btn-dark {
+  background: #1a1a2e;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-dark:hover { background: #2d2d4e; }
+
+.map-box {
+  position: relative;
+  flex: 1;
+  min-height: 270px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #e8eaf0;
+}
+.map-box iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 14px;
+}
+
+.mpin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+.mpin-orange {
+  width: 34px;
+  height: 34px;
+  background: #ff6b00;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.mpin-orange i {
+  transform: rotate(45deg);
+  color: #fff;
+  font-size: 16px;
+}
+.mpin-grey {
+  width: 30px;
+  height: 30px;
+  background: #555;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mpin-grey i {
+  transform: rotate(45deg);
+  color: #fff;
+  font-size: 14px;
+}
+.mpin-ring {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid #8b5cf6;
+  background: rgba(139,92,246,0.15);
+}
+
+.map-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #555;
+  font-weight: 500;
+}
+.ldot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.ldot-green { background: #22c55e; }
+.ldot-blue  { background: #2563eb; }
+.ldot-red   { background: #ef4444; margin-left: 14px; }
+.ltext { font-size: 13px; color: #555; }
+
+/* ---------- DONUT CHART ---------- */
+.donut-center {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 8px;
+}
+.donut-svg {
+  width: 175px;
+  height: 175px;
+}
+.donut-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 4px;
+  padding-bottom: 4px;
+}
+.dl-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #555;
+  font-weight: 500;
+}
+.dl-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ---------- TOP RIDERS ---------- */
+.riders-hdr {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #bbb;
+  font-weight: 500;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f5f5f5;
+}
+.rider-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 1px solid #fafafa;
+}
+.rider-row:last-child { border-bottom: none; }
+.rider-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rider-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a2e;
+  line-height: 1.3;
+}
+.rider-email {
+  font-size: 11px;
+  color: #bbb;
+}
+.rider-count {
+  font-size: 15px;
+  font-weight: 700;
+  color: #22c55e;
+}
+
+/* ---------- ORDERS TABLE ---------- */
+.table-card { padding-bottom: 10px; }
+
+.tbl-wrap {
+  overflow-x: auto;
+}
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  min-width: 560px;
+}
+.tbl th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #bbb;
+  font-weight: 500;
+  border-bottom: 1px solid #f0f0f0;
+}
+.tbl td {
+  padding: 14px 14px;
+  color: #444;
+  border-bottom: 1px solid #fafafa;
+}
+.tbl tr:last-child td { border-bottom: none; }
+.td-track {
+  font-weight: 600;
+  color: #666;
+}
+
+.badge {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-block;
+}
+.badge-pending   { color: #f59e0b; background: #fffbeb; }
+.badge-completed { color: #22c55e; background: #f0fdf4; }
+.badge-cancelled { color: #ef4444; background: #fef2f2; }
+
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+@media (max-width: 1100px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .mid-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .right-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .map-box {
+    flex: none;
+    height: 270px;
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .right-col {
+    grid-template-columns: 1fr;
+  }
+  .stat-val {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 400px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gmap-container {
+  width: 100%;
+  height: 100%;
+  min-height: 270px;
+  border-radius: 14px;
+}
+
+.osm-map-container {
+  width: 100%;
+  height: 100%;
+  min-height: 270px;
+  border-radius: 14px;
+  z-index: 1;
+}
+
+.map-config-missing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 270px;
+  padding: 24px;
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+}
+
+.map-config-missing i {
+  font-size: 28px;
+  color: #94a3b8;
+}
+
+.map-config-missing code {
+  font-size: 12px;
+  background: #eef1f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ymca-branch-marker {
+  background: none;
+  border: none;
+}
+
+.ymca-branch-pin {
+  width: 32px;
+  height: 32px;
+  background: #2563eb;
+  border: 3px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.ymca-branch-pin i {
+  transform: rotate(45deg);
+  color: #fff;
+  font-size: 14px;
+}
+
+.ymca-branch-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.ymca-branch-popup strong {
+  color: #1a1a2e;
+  font-size: 14px;
+}
+
+.ymca-branch-region {
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.ymca-branch-address {
+  color: #666;
+  font-size: 12px;
+}

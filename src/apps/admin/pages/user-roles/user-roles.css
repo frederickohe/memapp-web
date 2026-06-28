@@ -1,0 +1,239 @@
+@import '../../styles/shared.css';
+
+/* ---------- ROLE CARDS ---------- */
+.role-section { margin-bottom: 22px; }
+.section-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.role-tile {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.03);
+  border: 1px solid #f5f5f5;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.role-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+.role-tile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.role-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.role-access-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #888;
+  background: #f5f6fa;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.role-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+.role-desc {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  min-height: 36px;
+}
+
+.role-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: #888;
+  padding-top: 14px;
+  border-top: 1px solid #f5f5f5;
+}
+.role-footer i { font-size: 13px; color: #aaa; margin-right: 4px; }
+.role-edit-link {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+/* ---------- ADMIN USERS TABLE ---------- */
+.avatar-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.cust-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cell-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.role-pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* ---------- PERMISSIONS MODAL ---------- */
+.modal-wide {
+  max-width: 520px;
+}
+.role-modal-desc {
+  font-size: 12.5px;
+  color: #888;
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+.section-sub-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 10px;
+}
+
+.perm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 14px;
+}
+.perm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 4px;
+  border-bottom: 1px solid #fafafa;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+}
+.perm-row:last-child { border-bottom: none; }
+.perm-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #22c55e;
+  cursor: pointer;
+}
+
+.perm-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+.perm-note i { font-size: 14px; }
+
+.modal-sub {
+  font-size: 12.5px;
+  color: #888;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1100px) {
+  .role-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .role-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- PERMISSION GROUPS ---------- */
+.perm-group {
+  margin-bottom: 14px;
+}
+.perm-group-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+/* ---------- CREATE USER SUCCESS / CREDENTIAL REVEAL ---------- */
+.success-box {
+  text-align: center;
+  padding: 8px 0 14px;
+}
+.success-box i {
+  font-size: 44px;
+  color: #22c55e;
+  margin-bottom: 10px;
+  display: block;
+}
+.success-box h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+.success-box p {
+  font-size: 12.5px;
+  color: #888;
+  line-height: 1.5;
+}
+
+.credential-box {
+  background: #f5f6fa;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.credential-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+.credential-row + .credential-row {
+  border-top: 1px solid #ececf2;
+}
+.credential-pass {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: #fff;
+  padding: 3px 8px;
+  border-radius: 6px;
+}

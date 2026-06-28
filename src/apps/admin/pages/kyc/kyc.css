@@ -1,0 +1,74 @@
+@import '../../styles/shared.css';
+
+.avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.cust-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.vehicle-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  color: #555;
+}
+.vehicle-tag i { color: #888; font-size: 15px; }
+
+.doc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.doc-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.doc-item img {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #f0f0f0;
+  object-fit: cover;
+  aspect-ratio: 16/10;
+}
+.doc-item span {
+  font-size: 11px;
+  color: #888;
+  font-weight: 500;
+}
+.doc-missing {
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px dashed #e2e8f0;
+  border-radius: 10px;
+  aspect-ratio: 16/10;
+  color: #bbb;
+  text-align: center;
+  padding: 10px;
+}
+.doc-missing i { font-size: 24px; margin-bottom: 6px; }
+.doc-missing span { font-size: 11px; }
+
+.rejection-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #fef2f2;
+  color: #ef4444;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  line-height: 1.4;
+}
+.rejection-note i { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
