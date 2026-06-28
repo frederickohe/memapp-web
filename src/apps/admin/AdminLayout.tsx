@@ -13,7 +13,7 @@ export function AdminLayout() {
   const { admin, logout, logoutLocally } = useAuth()
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState<'sidebar' | 'topbar' | null>(null)
   const [loggingOut, setLoggingOut] = useState(false)
 
   const segment = location.pathname.replace(base, '').split('/').filter(Boolean)[0] || 'dashboard'
@@ -27,11 +27,11 @@ export function AdminLayout() {
     .join(' ')
 
   useEffect(() => {
-    setUserMenuOpen(false)
+    setUserMenuOpen(null)
   }, [location.pathname])
 
   useEffect(() => {
-    const close = () => setUserMenuOpen(false)
+    const close = () => setUserMenuOpen(null)
     document.addEventListener('click', close)
     return () => document.removeEventListener('click', close)
   }, [])
@@ -84,7 +84,7 @@ export function AdminLayout() {
           className="sidebar-user"
           onClick={(e) => {
             e.stopPropagation()
-            setUserMenuOpen((open) => !open)
+            setUserMenuOpen((open) => (open === 'sidebar' ? null : 'sidebar'))
           }}
         >
           <div className="avatar-initial">{adminInitial}</div>
@@ -94,7 +94,7 @@ export function AdminLayout() {
           </div>
           <i className="ri-arrow-down-s-line" style={{ color: '#bbb', marginLeft: 'auto' }} />
 
-          {userMenuOpen && (
+          {userMenuOpen === 'sidebar' && (
             <div className="user-menu" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
@@ -134,7 +134,7 @@ export function AdminLayout() {
             className="topbar-right"
             onClick={(e) => {
               e.stopPropagation()
-              setUserMenuOpen((open) => !open)
+              setUserMenuOpen((open) => (open === 'topbar' ? null : 'topbar'))
             }}
           >
             <div className="avatar-initial">{adminInitial}</div>
@@ -144,7 +144,7 @@ export function AdminLayout() {
             </div>
             <i className="ri-arrow-down-s-line" style={{ color: '#bbb' }} />
 
-            {userMenuOpen && (
+            {userMenuOpen === 'topbar' && (
               <div className="user-menu user-menu-topbar" onClick={(e) => e.stopPropagation()}>
                 <button
                   type="button"
