@@ -70,7 +70,7 @@ const contactDetails = [
 ] as const
 
 const stats = [
-  { value: 'GHC 45K', label: 'Total Budget', color: '#cc0000' },
+  { value: '1890', label: 'Established', color: '#cc0000' },
   { value: '5 Phases', label: 'Rollout Plan', color: '#1d6fb8' },
   { value: '6 Months', label: 'Time to Launch', color: '#0f7e5a' },
 ] as const
@@ -410,38 +410,6 @@ export function HomePage() {
 
   return (
     <div className={styles.homePage}>
-      <nav className={styles.topNav} aria-label="Primary">
-        <a href="#" className={styles.navBrand} onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
-          <img src={appLogoSrc} alt="YMCA Ghana" className={styles.navLogo} />
-          <span className={styles.navBrandText}>
-            <span className={styles.navBrandTitle}>YMCA Ghana</span>
-            <span className={styles.navBrandSubtitle}>Member App Project</span>
-          </span>
-        </a>
-
-        <div className={styles.navLinks}>
-          <a href="#contact" className={styles.navLink}>
-            Contact
-          </a>
-          <a
-            href={appStoreLinks.playStore}
-            className={styles.navLink}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Play Store
-          </a>
-          <a
-            href={appStoreLinks.appStore}
-            className={styles.navLink}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            App Store
-          </a>
-        </div>
-      </nav>
-
       <section className={styles.landing} aria-label="Landing">
         <img
           className={styles.backgroundImage}
@@ -449,6 +417,45 @@ export function HomePage() {
           alt=""
         />
         <div className={styles.backgroundOverlay} />
+
+        <nav className={styles.topNav} aria-label="Primary">
+          <a
+            href="#"
+            className={styles.navBrand}
+            onClick={(e) => {
+              e.preventDefault()
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+          >
+            <img src={appLogoSrc} alt="YMCA Ghana" className={styles.navLogo} />
+            <span className={styles.navBrandText}>
+              <span className={styles.navBrandTitle}>YMCA Ghana</span>
+              <span className={styles.navBrandSubtitle}>Member App Project</span>
+            </span>
+          </a>
+
+          <div className={styles.navLinks}>
+            <a href="#contact" className={styles.navLink}>
+              Contact
+            </a>
+            <a
+              href={appStoreLinks.playStore}
+              className={styles.navLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Play Store
+            </a>
+            <a
+              href={appStoreLinks.appStore}
+              className={styles.navLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              App Store
+            </a>
+          </div>
+        </nav>
 
         <div className={styles.content}>
           <h1 className={styles.title}>
@@ -531,8 +538,8 @@ export function HomePage() {
             <div className={styles.summaryMedia}>
               <div className={styles.imageFrame}>
                 <img
-                  src="/images/landing-hero.png"
-                  alt="YMCA Ghana members"
+                  src="/images/summary-youth.jpg"
+                  alt="Young people volunteering together in the community"
                   className={styles.summaryImage}
                 />
               </div>
