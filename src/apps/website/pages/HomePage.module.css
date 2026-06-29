@@ -925,42 +925,6 @@ a.contactValue:hover {
   flex-shrink: 0;
 }
 
-.scrollButton {
-  position: absolute;
-  left: 50%;
-  bottom: 2.5rem;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.4);
-  cursor: pointer;
-  transform: translateX(-50%);
-  animation: bounce 2s infinite;
-}
-
-.scrollButton:hover {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.scrollIcon {
-  display: block;
-}
-
-@keyframes bounce {
-  0%,
-  100% {
-    transform: translateX(-50%) translateY(0);
-  }
-
-  50% {
-    transform: translateX(-50%) translateY(0.5rem);
-  }
-}
-
 @media (max-width: 640px) {
   .sectionInner {
     padding: 0 1.5rem;
@@ -996,9 +960,5 @@ a.contactValue:hover {
   .secondaryButton {
     width: 100%;
     max-width: 18rem;
-  }
-
-  .scrollButton {
-    bottom: 1.5rem;
   }
 }

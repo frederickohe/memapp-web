@@ -358,27 +358,6 @@ function ArrowRightIcon() {
   )
 }
 
-function ChevronDownIcon() {
-  return (
-    <svg
-      className={styles.scrollIcon}
-      width="32"
-      height="32"
-      viewBox="0 0 32 32"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M8 12l8 8 8-8"
-        stroke="currentColor"
-        strokeWidth="2.67"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 function CheckIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -490,15 +469,6 @@ export function HomePage() {
             </a>
           </div>
         </div>
-
-        <button
-          type="button"
-          className={styles.scrollButton}
-          onClick={scrollToContent}
-          aria-label="Scroll to content"
-        >
-          <ChevronDownIcon />
-        </button>
       </section>
 
       <section ref={summaryRef} id="summary" className={styles.summary}>
