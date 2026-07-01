@@ -1,0 +1,32 @@
+export const YLEARN_API = {
+  auth: {
+    signin: '/auth/signin',
+    adminSignin: '/auth/admin/signin',
+    signout: '/auth/signout',
+    adminSignout: '/auth/admin/signout',
+    me: '/user/me',
+    adminMe: '/auth/admin/me',
+  },
+  courses: {
+    browse: '/courses/public/browse',
+    detail: (id: string) => `/courses/public/${id}`,
+    providersMap: '/courses/public/providers/map',
+    myEnrolments: '/courses/my-enrolments',
+    dashboard: '/courses/dashboard',
+    enrol: (id: string) => `/courses/${id}/enrol`,
+    enrolment: (id: string) => `/courses/enrolments/${id}`,
+    checkout: (id: string) => `/courses/enrolments/${id}/checkout`,
+    withdraw: (id: string) => `/courses/enrolments/${id}/withdraw`,
+    content: (id: string) => `/courses/${id}/content`,
+  },
+  admin: {
+    stats: '/admin/courses/stats',
+    learners: '/admin/courses/learners',
+    courses: '/admin/courses',
+    course: (id: string) => `/admin/courses/${id}`,
+    archive: (id: string) => `/admin/courses/${id}/archive`,
+    courseEnrolments: (id: string) => `/admin/courses/${id}/enrolments`,
+    removeLearner: (id: string) => `/admin/course-enrolments/${id}/remove`,
+    providers: '/admin/course-providers',
+  },
+} as const

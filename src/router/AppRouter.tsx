@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { isAdminHost } from '../config/hosts'
+import { isAdminHost, isYlearnHost } from '../config/hosts'
 import { AdminApp } from '../apps/admin/AdminApp'
 import { AdminLayout } from '../apps/admin/AdminLayout'
 import { RequireAuth, RequireGuest } from '../apps/admin/guards'
@@ -19,6 +19,7 @@ import { UserRolesPage } from '../apps/admin/pages/user-roles/UserRolesPage'
 import { SettingsPage } from '../apps/admin/pages/settings/SettingsPage'
 import { WebsiteLayout } from '../apps/website/WebsiteLayout'
 import { HomePage } from '../apps/website/pages/HomePage'
+import { YlearnApp } from '../apps/ylearn/YlearnApp'
 
 function LocalRoutes() {
   return (
@@ -27,7 +28,7 @@ function LocalRoutes() {
         <Route index element={<HomePage />} />
       </Route>
 
-      <Route path="/admin" element={<AdminApp />}>
+      <Route path="/admin/*" element={<AdminApp />}>
         <Route element={<RequireGuest />}>
           <Route path="login" element={<LoginPage />} />
         </Route>
@@ -52,6 +53,8 @@ function LocalRoutes() {
         </Route>
       </Route>
 
+      <Route path="/ylearn/*" element={<YlearnApp />} />
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
@@ -60,7 +63,7 @@ function LocalRoutes() {
 function ProductionAdminRoutes() {
   return (
     <Routes>
-      <Route element={<AdminApp />}>
+      <Route path="/*" element={<AdminApp />}>
         <Route element={<RequireGuest />}>
           <Route path="login" element={<LoginPage />} />
         </Route>
@@ -90,6 +93,14 @@ function ProductionAdminRoutes() {
   )
 }
 
+function ProductionYlearnRoutes() {
+  return (
+    <Routes>
+      <Route path="/*" element={<YlearnApp />} />
+    </Routes>
+  )
+}
+
 function WebsiteRoutes() {
   return (
     <Routes>
@@ -105,6 +116,7 @@ export function AppRouter() {
   const hostname = window.location.hostname
   const useLocalPaths = hostname === 'localhost' || hostname === '127.0.0.1'
   const onAdminHost = isAdminHost()
+  const onYlearnHost = isYlearnHost()
 
   return (
     <BrowserRouter>
@@ -112,6 +124,8 @@ export function AppRouter() {
         <LocalRoutes />
       ) : onAdminHost ? (
         <ProductionAdminRoutes />
+      ) : onYlearnHost ? (
+        <ProductionYlearnRoutes />
       ) : (
         <WebsiteRoutes />
       )}
