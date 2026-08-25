@@ -1,33 +1,62 @@
-name: Deploy to production
+name: CI and deploy
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-memapp-web-production
-  cancel-in-progress: false
+  group: memapp-web-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
 
 jobs:
-  deploy:
+  ci:
+    name: Build
     runs-on: ubuntu-latest
-    environment: production
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "20.19"
           cache: npm
 
-      - name: Build
+      - name: Install and build
+        env:
+          VITE_API_BASE_URL: https://api.ymemberapp.com
         run: |
           npm ci
           npm run build
-          tar -czf dist.tgz -C dist .
+          test -n "$(find dist/assets -name '*.js' | head -1)"
+
+      - name: Upload dist artifact
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        uses: actions/upload-artifact@v4
+        with:
+          name: memapp-web-dist
+          path: dist
+          retention-days: 7
+
+  deploy:
+    name: Deploy production
+    needs: ci
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20
+    steps:
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: memapp-web-dist
+          path: dist
+
+      - name: Pack dist
+        run: tar -czf dist.tgz -C dist .
 
       - name: Upload build to server
         uses: appleboy/scp-action@v1.0.0
@@ -37,20 +66,52 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           source: dist.tgz
           target: /tmp
+          timeout: 120s
 
-      - name: Install build and restart Caddy
+      - name: Install build
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script_stop: true
+          command_timeout: 5m
           script: |
             set -euo pipefail
-            mkdir -p /var/www/memapp-web/dist
-            rm -rf /var/www/memapp-web/dist/*
-            tar -xzf /tmp/dist.tgz -C /var/www/memapp-web/dist
+            WEB_DIR="/var/www/memapp-web"
+            mkdir -p "$WEB_DIR/dist"
+            rm -rf "$WEB_DIR/dist"/*
+            tar -xzf /tmp/dist.tgz -C "$WEB_DIR/dist"
             rm -f /tmp/dist.tgz
-            cd /var/www/memappcaddy
-            docker compose restart caddy
+            if [[ ! -f "$WEB_DIR/dist/index.html" ]]; then
+              echo "Deploy failed: dist/index.html missing" >&2
+              exit 1
+            fi
+
+            restart_caddy() {
+              if docker info >/dev/null 2>&1; then
+                docker compose restart caddy
+              elif command -v sudo >/dev/null && sudo -n docker info >/dev/null 2>&1; then
+                sudo docker compose restart caddy
+              else
+                echo "Could not restart Caddy (no docker access). Static files are updated in place."
+                return 0
+              fi
+            }
+
+            if [[ -d /var/www/memappcaddy ]]; then
+              cd /var/www/memappcaddy
+              restart_caddy
+            fi
             echo "memapp-web deploy complete"
+
+      - name: Health check
+        run: |
+          for host in https://admin.ymemberapp.com https://ymemberapp.com; do
+            code="$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 15 "$host/")"
+            echo "$host -> $code"
+            if [[ "$code" != "200" ]]; then
+              echo "Health check failed for $host"
+              exit 1
+            fi
+          done

@@ -31,6 +31,12 @@ if ! compgen -G "$DIST_DIR/assets/"*.js > /dev/null; then
 fi
 
 cd /var/www/memappcaddy
-docker compose restart caddy
+if docker info >/dev/null 2>&1; then
+  docker compose restart caddy
+elif command -v sudo >/dev/null && sudo -n docker info >/dev/null 2>&1; then
+  sudo docker compose restart caddy
+else
+  echo "Could not restart Caddy (no docker access)."
+fi
 
 echo "memapp-web deploy complete"

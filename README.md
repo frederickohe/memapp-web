@@ -34,6 +34,17 @@ npm run build
 
 Output is written to `dist/`. Caddy serves this folder for both `ymemberapp.com` and `admin.ymemberapp.com`.
 
+## CI/CD
+
+Pushes to `main` run GitHub Actions: production build, upload to the VPS, restart Caddy, then health-check `admin.ymemberapp.com`.
+
+One-time secrets (`DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`):
+
+```bash
+gh auth login
+bash scripts/setup-github-secrets.sh
+```
+
 ## Environment
 
 Copy `.env.example` to `.env.local` and adjust as needed:

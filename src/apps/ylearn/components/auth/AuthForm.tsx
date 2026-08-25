@@ -37,7 +37,7 @@ export function AuthForm() {
       </div>
       <div className="yl-form-group">
         <label className="yl-label">Password</label>
-        <input name="password" type="password" required minLength={6} className="yl-input" autoComplete="current-password" />
+        <input name="password" type="password" required minLength={8} className="yl-input" autoComplete="current-password" />
       </div>
       {error && <p className="yl-error">{error}</p>}
       <Button type="submit" disabled={loading} className="w-full">

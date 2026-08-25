@@ -18,8 +18,9 @@ function formatDetail(detail: unknown): string | null {
   if (Array.isArray(detail)) {
     const messages = detail
       .map((item) => {
-        if (item && typeof item === 'object' && 'msg' in item) {
-          const msg = (item as { msg?: unknown }).msg
+        if (item && typeof item === 'object') {
+          const msg = (item as { msg?: unknown; message?: unknown }).msg
+            ?? (item as { message?: unknown }).message
           return typeof msg === 'string' ? msg : null
         }
         return null
@@ -28,6 +29,28 @@ function formatDetail(detail: unknown): string | null {
 
     if (messages.length > 0) {
       return messages.join('. ')
+    }
+  }
+
+  if (detail && typeof detail === 'object') {
+    const record = detail as { message?: unknown; errors?: unknown }
+    if (Array.isArray(record.errors)) {
+      const messages = record.errors
+        .map((item) => {
+          if (item && typeof item === 'object') {
+            const msg = (item as { message?: unknown; msg?: unknown }).message
+              ?? (item as { msg?: unknown }).msg
+            return typeof msg === 'string' ? msg : null
+          }
+          return null
+        })
+        .filter((msg): msg is string => !!msg)
+      if (messages.length > 0) {
+        return messages.join('. ')
+      }
+    }
+    if (typeof record.message === 'string' && record.message.trim()) {
+      return record.message
     }
   }
 
