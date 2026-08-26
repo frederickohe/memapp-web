@@ -34,7 +34,7 @@
 .card-title {
   font-size: 15px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #111111;
 }
 
 /* ---------- MAP CARD ---------- */
@@ -142,7 +142,7 @@
 .icon-blue   { background: #eff6ff; color: #3b82f6; }
 .icon-orange { background: #fff7ed; color: #f97316; }
 .icon-red    { background: #fef2f2; color: #ef4444; }
-.icon-green  { background: #f0fdf4; color: #22c55e; }
+.icon-green  { background: #fde8ea; color: #ed1c24; }
 .icon-purple { background: #f5f3ff; color: #8b5cf6; }
 .icon-teal   { background: #f0fdfa; color: #14b8a6; }
 .icon-indigo { background: #eef2ff; color: #6366f1; }
@@ -164,7 +164,7 @@
 .notif-category-label {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: #111111;
 }
 
 .notif-category-count {
@@ -247,7 +247,7 @@
 }
 
 .ymca-branch-popup strong {
-  color: #1a1a2e;
+  color: #111111;
   font-size: 14px;
 }
 

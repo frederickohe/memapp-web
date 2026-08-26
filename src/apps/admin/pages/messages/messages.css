@@ -49,7 +49,7 @@
   transition: background 0.12s;
 }
 .conv-item:hover { background: #fafbfc; }
-.conv-active { background: #f0fdf4; }
+.conv-active { background: #fde8ea; }
 
 .avatar-sm {
   width: 40px;
@@ -67,7 +67,7 @@
 .conv-name {
   font-size: 13.5px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: #111111;
 }
 .conv-time {
   font-size: 10.5px;
@@ -89,7 +89,7 @@
   text-overflow: ellipsis;
 }
 .conv-unread {
-  background: #22c55e;
+  background: #ed1c24;
   color: #fff;
   font-size: 10.5px;
   font-weight: 700;
@@ -121,7 +121,7 @@
 .chat-name {
   font-size: 14px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #111111;
 }
 .chat-role {
   font-size: 11px;
@@ -157,7 +157,7 @@
   position: relative;
 }
 .from-me .chat-bubble {
-  background: #1a1a2e;
+  background: #111111;
   color: #fff;
   border: none;
   border-radius: 14px 14px 4px 14px;
@@ -189,7 +189,7 @@
   outline: none;
   transition: border-color 0.15s;
 }
-.chat-input-row input:focus { border-color: #22c55e; }
+.chat-input-row input:focus { border-color: #ed1c24; }
 .chat-input-row .btn-green {
   border-radius: 50%;
   width: 40px;
@@ -266,7 +266,7 @@
 .messages-user-check {
   margin-top: 12px;
   flex-shrink: 0;
-  accent-color: #22c55e;
+  accent-color: #ed1c24;
 }
 
 .messages-user-avatar {
@@ -296,7 +296,7 @@
 }
 
 .messages-user-selected-icon {
-  color: #22c55e;
+  color: #ed1c24;
   font-size: 18px;
   margin-top: 10px;
 }
@@ -335,7 +335,7 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: #f0fdf4;
+  background: #fde8ea;
   border: 1px solid #bbf7d0;
   font-size: 12px;
   color: #166534;

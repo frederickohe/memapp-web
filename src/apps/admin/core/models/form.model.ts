@@ -36,6 +36,7 @@ export interface Form {
 
 export interface FormDetail extends Form {
   response_count: number
+  submitted?: boolean | null
 }
 
 export interface FormListData {

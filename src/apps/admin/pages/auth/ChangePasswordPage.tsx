@@ -170,8 +170,8 @@ export function ChangePasswordPage() {
           font-weight: 800;
           letter-spacing: -0.5px;
         }
-        .logo-volt { color: #1a1a2e; }
-        .logo-go { color: #22c55e; }
+        .logo-volt { color: #111111; }
+        .logo-go { color: #ed1c24; }
       `}</style>
     </div>
   )

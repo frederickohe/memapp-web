@@ -30,7 +30,7 @@
 }
 
 .news-back-btn:hover {
-  color: #1a1a2e;
+  color: #111111;
 }
 
 .news-type-badge {
@@ -43,8 +43,8 @@
 }
 
 .news-type-news {
-  background: #f0fdf4;
-  color: #176b02;
+  background: #fde8ea;
+  color: #ed1c24;
 }
 
 .news-type-event {
@@ -131,7 +131,7 @@
 }
 
 .news-row-actions button:hover {
-  color: #22c55e;
+  color: #ed1c24;
 }
 
 .news-row-actions button.danger:hover {

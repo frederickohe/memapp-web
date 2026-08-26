@@ -61,7 +61,7 @@ function formatDateTime(value: string): string {
 }
 
 function assignmentLabel(type: FormAssignmentType): string {
-  if (type === 'PUBLIC') return 'Public'
+  if (type === 'PUBLIC') return 'Survey'
   if (type === 'PROGRAM') return 'Program'
   return 'User'
 }
@@ -406,7 +406,12 @@ export function FormsPage() {
 
       <section className="card table-card">
         <div className="card-hdr">
-          <h2 className="card-title">Forms</h2>
+          <div>
+            <h2 className="card-title">Forms</h2>
+            <p className="cell-sub" style={{ margin: '4px 0 0' }}>
+              Survey forms appear in Surveys &amp; Feedback in the member app. Program forms attach to applications.
+            </p>
+          </div>
           <div className="filter-bar">
             <div className="search-box">
               <i className="ri-search-line" />
@@ -432,7 +437,7 @@ export function FormsPage() {
               onChange={(e) => setAssignmentFilter(e.target.value as AssignmentFilter)}
             >
               <option value="All">All Types</option>
-              <option value="PUBLIC">Public</option>
+              <option value="PUBLIC">Survey</option>
               <option value="PROGRAM">Program</option>
               <option value="USER">User</option>
             </select>
@@ -569,7 +574,7 @@ export function FormsPage() {
                 className="form-input"
                 value={draft.title}
                 onChange={(e) => setDraft((p) => ({ ...p, title: e.target.value }))}
-                placeholder="e.g. Event Registration"
+                placeholder="e.g. Annual Member Satisfaction Survey"
               />
             </div>
 
@@ -594,7 +599,7 @@ export function FormsPage() {
                     setDraft((p) => ({ ...p, assignment_type: e.target.value as FormAssignmentType }))
                   }
                 >
-                  <option value="PUBLIC">Public — anyone can fill</option>
+                  <option value="PUBLIC">Survey — shows in member app</option>
                   <option value="PROGRAM">Program — attach to a program</option>
                   <option value="USER">User — assign to one member</option>
                 </select>

@@ -80,7 +80,7 @@
 }
 
 .region-chip.active {
-  background: var(--primary, #1e3a5f);
+  background: var(--primary, #ed1c24);
   color: #fff;
   border-color: var(--primary, #1e3a5f);
 }

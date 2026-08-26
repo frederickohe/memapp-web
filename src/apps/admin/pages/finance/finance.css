@@ -41,7 +41,7 @@
 .bar-fill {
   width: 60%;
   max-width: 36px;
-  background: linear-gradient(180deg, #3dd598 0%, #22c55e 100%);
+  background: linear-gradient(180deg, #ed1c24 0%, #ed1c24 100%);
   border-radius: 8px 8px 0 0;
   position: relative;
   min-height: 4px;
@@ -82,7 +82,7 @@
 .pm-name {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: #111111;
 }
 .pm-percent {
   font-size: 12px;

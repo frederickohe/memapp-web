@@ -177,8 +177,8 @@ export function AdminLayout() {
           letter-spacing: -0.5px;
           line-height: 1.2;
         }
-        .logo-volt { color: #1a1a2e; }
-        .logo-go { color: #22c55e; }
+        .logo-volt { color: #ffffff; }
+        .logo-go { color: #ed1c24; }
       `}</style>
     </div>
   )

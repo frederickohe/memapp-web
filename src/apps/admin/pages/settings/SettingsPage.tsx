@@ -492,7 +492,7 @@ export function SettingsPage() {
                 <tbody>
                   {loginHistory.map((log) => (
                     <tr key={`${log.admin}-${log.time}`}>
-                      <td style={{ fontWeight: 600, color: '#1a1a2e' }}>{log.admin}</td>
+                      <td style={{ fontWeight: 600, color: '#111111' }}>{log.admin}</td>
                       <td>{log.device}</td>
                       <td>{log.location}</td>
                       <td>{log.time}</td>

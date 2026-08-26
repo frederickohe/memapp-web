@@ -11,7 +11,7 @@
 .section-title {
   font-size: 16px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #111111;
 }
 
 .role-grid {
@@ -57,7 +57,7 @@
 .role-name {
   font-size: 15px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #111111;
   margin-bottom: 6px;
 }
 .role-desc {
@@ -79,7 +79,7 @@
 }
 .role-footer i { font-size: 13px; color: #aaa; margin-right: 4px; }
 .role-edit-link {
-  color: #22c55e;
+  color: #ed1c24;
   font-weight: 600;
 }
 
@@ -99,7 +99,7 @@
 .cell-name {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: #111111;
 }
 
 .role-pill {
@@ -123,7 +123,7 @@
 .section-sub-title {
   font-size: 13px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #111111;
   margin-bottom: 10px;
 }
 
@@ -147,7 +147,7 @@
 .perm-row input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #22c55e;
+  accent-color: #ed1c24;
   cursor: pointer;
 }
 
@@ -198,14 +198,14 @@
 }
 .success-box i {
   font-size: 44px;
-  color: #22c55e;
+  color: #ed1c24;
   margin-bottom: 10px;
   display: block;
 }
 .success-box h2 {
   font-size: 16px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #111111;
   margin-bottom: 6px;
 }
 .success-box p {

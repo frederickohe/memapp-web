@@ -1,9 +1,9 @@
 @import '../../styles/shared.css';
 
-/* YMCA brand green from design */
+/* YMCA brand red / black / white */
 :root {
-  --ymca-green: #176b02;
-  --ymca-green-hover: #125501;
+  --ymca-green: #ed1c24;
+  --ymca-green-hover: #c81018;
 }
 
 .programs-page {
@@ -67,7 +67,7 @@
 }
 
 .programs-back-btn:hover {
-  color: #1a1a2e;
+  color: #111111;
 }
 
 .program-media-row {
@@ -144,7 +144,7 @@
   padding: 8px 12px;
   font-size: 14px;
   font-family: 'Poppins', sans-serif;
-  color: #1a1a2e;
+  color: #111111;
   outline: none;
   transition: background 0.15s;
 }
@@ -188,7 +188,7 @@
   padding: 8px 12px;
   font-size: 14px;
   font-family: 'Poppins', sans-serif;
-  color: #1a1a2e;
+  color: #111111;
   outline: none;
 }
 
@@ -247,7 +247,7 @@
 }
 
 .program-status-upcoming { background: #eff6ff; color: #3b82f6; }
-.program-status-ongoing { background: #f0fdf4; color: #22c55e; }
+.program-status-ongoing { background: #fde8ea; color: #ed1c24; }
 .program-status-completed { background: #f3f4f6; color: #6b7280; }
 .program-status-cancelled { background: #fef2f2; color: #ef4444; }
 

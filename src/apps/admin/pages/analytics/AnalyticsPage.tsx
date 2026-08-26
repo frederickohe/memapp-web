@@ -190,7 +190,7 @@ export function AnalyticsPage() {
                   textAnchor="middle"
                   fontSize="34"
                   fontWeight="700"
-                  fill="#1a1a2e"
+                  fill="#111111"
                   fontFamily="Poppins,sans-serif"
                 >
                   {overview?.member_progress_pct ?? 0}%
