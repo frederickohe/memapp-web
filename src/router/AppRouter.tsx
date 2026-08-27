@@ -12,6 +12,7 @@ import { VhsPage } from '../apps/admin/pages/vhs/VhsPage'
 import { FormsPage } from '../apps/admin/pages/forms/FormsPage'
 import { ProgramsPage } from '../apps/admin/pages/programs/ProgramsPage'
 import { NewsPage } from '../apps/admin/pages/news/NewsPage'
+import { ProfilesPage } from '../apps/admin/pages/profiles/ProfilesPage'
 import { UsersPage } from '../apps/admin/pages/users/UsersPage'
 import { MessagesPage } from '../apps/admin/pages/messages/MessagesPage'
 import { BranchesPage } from '../apps/admin/pages/branches/BranchesPage'
@@ -44,6 +45,7 @@ function LocalRoutes() {
             <Route path="forms" element={<FormsPage />} />
             <Route path="programs" element={<ProgramsPage />} />
             <Route path="news" element={<NewsPage />} />
+            <Route path="profiles" element={<ProfilesPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="branches" element={<BranchesPage />} />
             <Route path="messages" element={<MessagesPage />} />
@@ -79,6 +81,7 @@ function ProductionAdminRoutes() {
             <Route path="forms" element={<FormsPage />} />
             <Route path="programs" element={<ProgramsPage />} />
             <Route path="news" element={<NewsPage />} />
+            <Route path="profiles" element={<ProfilesPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="branches" element={<BranchesPage />} />
             <Route path="messages" element={<MessagesPage />} />

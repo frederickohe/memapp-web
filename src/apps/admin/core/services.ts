@@ -60,6 +60,11 @@ import type {
   NewsListParams,
   CreateNewsRequest,
   UpdateNewsRequest,
+  CreateProminentProfileRequest,
+  ProminentProfile,
+  ProminentProfileListData,
+  ProminentProfileListParams,
+  UpdateProminentProfileRequest,
   Branch,
   Region,
   CreateBranchRequest,
@@ -437,6 +442,31 @@ export const newsApi = {
   },
   delete(id: string) {
     return apiRequest<{ message: string }>(API_ENDPOINTS.news.delete(id), {
+      method: 'DELETE',
+    })
+  },
+}
+
+export const profileApi = {
+  async list(params: ProminentProfileListParams = {}) {
+    return apiRequest<ProminentProfileListData>(API_ENDPOINTS.profiles.list, {
+      params: params as Record<string, string | number | boolean | undefined>,
+    })
+  },
+  create(payload: CreateProminentProfileRequest) {
+    return apiRequest<ProminentProfile>(API_ENDPOINTS.profiles.create, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+  update(id: string, payload: UpdateProminentProfileRequest) {
+    return apiRequest<ProminentProfile>(API_ENDPOINTS.profiles.update(id), {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  },
+  delete(id: string) {
+    return apiRequest<{ message: string }>(API_ENDPOINTS.profiles.delete(id), {
       method: 'DELETE',
     })
   },

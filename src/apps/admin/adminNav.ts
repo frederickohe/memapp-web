@@ -6,6 +6,7 @@ export const ADMIN_NAV = [
   { path: 'forms', label: 'Forms', icon: 'ri-survey-line' },
   { path: 'programs', label: 'Programs', icon: 'ri-calendar-event-line' },
   { path: 'news', label: 'News & Updates', icon: 'ri-newspaper-line' },
+  { path: 'profiles', label: 'Prominent Profiles', icon: 'ri-user-star-line' },
   { path: 'users', label: 'Users', icon: 'ri-group-line' },
   { path: 'branches', label: 'Branches', icon: 'ri-building-line' },
   { path: 'messages', label: 'Messages', icon: 'ri-chat-1-line' },

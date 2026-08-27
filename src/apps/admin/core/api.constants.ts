@@ -75,6 +75,12 @@ export const API_ENDPOINTS = {
     unpublish: (id: string) => `/news/${id}/unpublish`,
     delete: (id: string) => `/news/${id}`,
   },
+  profiles: {
+    list: '/dashboard/admin/prominent-profiles',
+    create: '/dashboard/admin/prominent-profiles',
+    update: (id: string) => `/dashboard/admin/prominent-profiles/${id}`,
+    delete: (id: string) => `/dashboard/admin/prominent-profiles/${id}`,
+  },
   storage: {
     upload: '/storage/upload',
   },
