@@ -15,7 +15,9 @@ export function HomePage() {
   const { user } = useYlearnAuth()
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeVideo, setActiveVideo] = useState(FEATURED_VIDEOS[0])
+  const [activeVideo, setActiveVideo] = useState<(typeof FEATURED_VIDEOS)[number]>(
+    FEATURED_VIDEOS[0],
+  )
 
   useEffect(() => {
     void searchCourses({})
