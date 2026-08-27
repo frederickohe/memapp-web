@@ -7,7 +7,7 @@ import { formatTimeAgo } from '../../core/utils/formatTimeAgo'
 import '../../styles/admin-global.css'
 import './user-roles.css'
 
-const ROLE_COLORS = ['#8b5cf6', '#3b82f6', '#ed1c24', '#f97316', '#06b6d4', '#9ca3af', '#ec4899', '#eab308']
+const ROLE_COLORS = ['#ed1c24', '#111111', '#c81018', '#6b7280', '#2a2a2a', '#9ca3af', '#8a1018', '#444444']
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',

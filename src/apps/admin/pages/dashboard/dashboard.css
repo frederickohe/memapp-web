@@ -13,7 +13,7 @@
 }
 
 .stat-card-link:hover {
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 4px 16px rgba(237, 28, 36, 0.12);
   transform: translateY(-1px);
 }
 
@@ -54,7 +54,7 @@
   min-height: 270px;
   border-radius: 14px;
   overflow: hidden;
-  background: #e8eaf0;
+  background: #f0f0f0;
 }
 
 .map-box-tall {
@@ -76,7 +76,7 @@
   border-radius: 50%;
   display: inline-block;
 }
-.ldot-blue { background: #2563eb; }
+.ldot-blue { background: #ed1c24; }
 .ltext { font-size: 13px; color: #555; }
 
 .osm-map-container {
@@ -124,8 +124,8 @@
 }
 
 .notif-category-card:hover {
-  border-color: #dbeafe;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+  border-color: #fde8ea;
+  box-shadow: 0 4px 12px rgba(237, 28, 36, 0.1);
 }
 
 .notif-category-icon {
@@ -139,14 +139,14 @@
   flex-shrink: 0;
 }
 
-.icon-blue   { background: #eff6ff; color: #3b82f6; }
-.icon-orange { background: #fff7ed; color: #f97316; }
-.icon-red    { background: #fef2f2; color: #ef4444; }
+.icon-blue   { background: #f5f5f5; color: #111111; }
+.icon-orange { background: #f5f5f5; color: #111111; }
+.icon-red    { background: #fde8ea; color: #ed1c24; }
 .icon-green  { background: #fde8ea; color: #ed1c24; }
-.icon-purple { background: #f5f3ff; color: #8b5cf6; }
-.icon-teal   { background: #f0fdfa; color: #14b8a6; }
-.icon-indigo { background: #eef2ff; color: #6366f1; }
-.icon-rose   { background: #fff1f2; color: #f43f5e; }
+.icon-purple { background: #111111; color: #ffffff; }
+.icon-teal   { background: #111111; color: #ffffff; }
+.icon-indigo { background: #f5f5f5; color: #111111; }
+.icon-rose   { background: #fde8ea; color: #ed1c24; }
 
 .notif-category-body {
   flex: 1;
@@ -170,8 +170,8 @@
 .notif-category-count {
   font-size: 13px;
   font-weight: 700;
-  color: #2563eb;
-  background: #eff6ff;
+  color: #ed1c24;
+  background: #fde8ea;
   padding: 2px 8px;
   border-radius: 20px;
   flex-shrink: 0;
@@ -221,7 +221,7 @@
 .ymca-branch-pin {
   width: 32px;
   height: 32px;
-  background: #2563eb;
+  background: #ed1c24;
   border: 3px solid #fff;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
@@ -252,7 +252,7 @@
 }
 
 .ymca-branch-region {
-  color: #2563eb;
+  color: #ed1c24;
   font-weight: 600;
   font-size: 12px;
 }

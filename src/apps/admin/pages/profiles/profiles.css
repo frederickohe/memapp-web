@@ -17,7 +17,7 @@
   width: 120px;
   height: 120px;
   border-radius: 60px;
-  background: #1d3108;
+  background: #111111;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -62,7 +62,7 @@
 }
 
 .profile-cell-initials {
-  background: #1d3108;
+  background: #111111;
   color: #fff;
   display: inline-flex;
   align-items: center;

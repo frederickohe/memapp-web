@@ -177,7 +177,7 @@ export function AnalyticsPage() {
                   cy="100"
                   r="70"
                   fill="none"
-                  stroke="#1e3a5f"
+                  stroke="#ed1c24"
                   strokeWidth="22"
                   strokeDasharray={`${(overview?.member_progress_pct ?? 0) * 4.4} ${440 - (overview?.member_progress_pct ?? 0) * 4.4}`}
                   strokeDashoffset="0"
@@ -209,7 +209,7 @@ export function AnalyticsPage() {
             </div>
             <div className="donut-legend">
               <span className="dl-item">
-                <span className="dl-dot" style={{ background: '#1e3a5f' }} />
+                <span className="dl-dot" style={{ background: '#ed1c24' }} />
                 Current ({overview?.total_members ?? 0})
               </span>
               <span className="dl-item">
@@ -284,7 +284,7 @@ export function AnalyticsPage() {
             {(overview?.top_branches ?? []).map((branch) => (
               <div key={branch.branch_id} className="rider-row">
                 <div className="rider-left">
-                  <div className="avatar-sm" style={{ background: '#1e3a5f', color: '#fff', display: 'grid', placeItems: 'center' }}>
+                  <div className="avatar-sm" style={{ background: '#111111', color: '#fff', display: 'grid', placeItems: 'center' }}>
                     <i className="ri-building-line" />
                   </div>
                   <div>

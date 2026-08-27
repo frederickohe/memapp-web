@@ -16,8 +16,19 @@
   --ymca-bg: #f5f5f5;
   --ymca-muted: #888888;
   --ymca-border: #ececec;
+  --primary: #ed1c24;
+  --card-bg: #ffffff;
+  --border-color: #ececec;
+  --text-muted: #888888;
+  --surface-muted: #f5f5f5;
   font-family: 'Poppins', sans-serif;
   color: var(--ymca-black);
   background: var(--ymca-bg);
+  accent-color: var(--ymca-red);
+}
+
+.admin-app ::selection {
+  background: var(--ymca-red);
+  color: var(--ymca-white);
 }
 
