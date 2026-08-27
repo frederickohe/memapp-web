@@ -421,6 +421,9 @@
   width: 2.5rem;
   height: 2.5rem;
   flex-shrink: 0;
+  border-radius: 0.65rem;
+  object-fit: cover;
+  background: #f4f4f6;
 }
 
 .navBrandText {
@@ -794,6 +797,9 @@ a.contactValue:hover {
   width: 1.75rem;
   height: 1.75rem;
   flex-shrink: 0;
+  border-radius: 0.4rem;
+  object-fit: cover;
+  background: #f4f4f6;
 }
 
 .pageFooterText {

@@ -56,8 +56,9 @@ export function AdminLayout() {
       <aside className={`sidebar${sidebarOpen ? ' sidebar-open' : ''}`}>
         <div className="sidebar-top">
           <div className="logo">
+            <img src="/ymca-logo.png" alt="YMCA App" className="sidebar-logo-img" />
             <div className="sidebar-logo-text">
-              <span className="logo-volt">Ymca</span>
+              <span className="logo-volt">YMCA</span>
               <span className="logo-go"> Admin</span>
             </div>
           </div>

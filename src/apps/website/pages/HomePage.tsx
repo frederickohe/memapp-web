@@ -373,7 +373,7 @@ function CheckIcon() {
   )
 }
 
-const appLogoSrc = '/ymca-logo.svg'
+const appLogoSrc = '/ymca-logo.png'
 
 export function HomePage() {
   const summaryRef = useRef<HTMLElement>(null)

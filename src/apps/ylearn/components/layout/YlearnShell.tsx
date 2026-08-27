@@ -29,8 +29,11 @@ export function YlearnShell({ children }: { children: React.ReactNode }) {
     <div className="yl-shell">
       <aside className="yl-sidebar">
         <Link to={base} className="yl-sidebar-brand">
-          <p>YMCA</p>
-          <h1>E-Learning</h1>
+          <img src="/ymca-logo.png" alt="" className="yl-sidebar-logo" />
+          <div>
+            <p>YMCA</p>
+            <h1>E-Learning</h1>
+          </div>
         </Link>
         <nav className="yl-nav">
           {user

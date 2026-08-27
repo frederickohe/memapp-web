@@ -52,8 +52,9 @@ export function LoginPage() {
       <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo">
+            <img src="/ymca-logo.png" alt="YMCA App" className="auth-logo-img" />
             <div className="auth-logo-text">
-              <span className="logo-volt">Ymca</span>
+              <span className="logo-volt">YMCA</span>
               <span className="logo-go"> Admin</span>
             </div>
           </div>

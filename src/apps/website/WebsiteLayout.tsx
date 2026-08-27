@@ -10,8 +10,8 @@ export function WebsiteLayout() {
       {!isHome && (
         <header className={styles.header}>
           <Link to="/" className={styles.brand}>
-            <span className={styles.brandMark}>Y</span>
-            <span>YMCA Member App</span>
+            <img src="/ymca-logo.png" alt="" className={styles.brandMark} />
+            <span>YMCA App</span>
           </Link>
           <nav className={styles.nav}>
             <Link to="/">Home</Link>
@@ -25,7 +25,7 @@ export function WebsiteLayout() {
       </main>
       {!isHome && (
         <footer className={styles.footer}>
-          <p>Ymca Member App — ymemberapp.com</p>
+          <p>YMCA App — ymemberapp.com</p>
         </footer>
       )}
     </div>

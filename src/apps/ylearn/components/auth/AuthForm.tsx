@@ -44,7 +44,7 @@ export function AuthForm() {
         {loading ? 'Please wait…' : 'Sign in'}
       </Button>
       <p className="text-muted" style={{ marginTop: '1rem', fontSize: '0.875rem' }}>
-        Sign in with the same email and password you use for the YMCA Member App.
+        Sign in with the same email and password you use for the YMCA App.
       </p>
     </form>
   )

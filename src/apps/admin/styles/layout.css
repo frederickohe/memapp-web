@@ -34,10 +34,21 @@
   padding: 24px 20px 20px 20px;
 }
 
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .sidebar-logo-img {
-  height: 82px;
-  width: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f4f4f6;
   display: block;
+  flex-shrink: 0;
 }
 .logo-volt { color: #ffffff; }
 .logo-go   { color: #ed1c24; }

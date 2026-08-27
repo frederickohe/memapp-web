@@ -28,15 +28,12 @@
 }
 
 .brandMark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   width: 2rem;
   height: 2rem;
   border-radius: 0.65rem;
-  background: #0066b3;
-  color: #fff;
-  font-weight: 800;
+  object-fit: cover;
+  background: #f4f4f6;
 }
 
 .nav {
