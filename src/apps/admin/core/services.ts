@@ -164,6 +164,8 @@ export const paymentApi = {
         method: (p.method ?? null) as string | undefined,
         amount: parseFloat(String(p.amount_ghs ?? p.amount ?? '0')),
         status: p.status,
+        period_year: p.period_year as number | undefined,
+        period_month: p.period_month as number | undefined,
         created_at: p.created_at as string,
       })),
     } as AdminPaymentListData

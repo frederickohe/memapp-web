@@ -16,6 +16,8 @@ export interface AdminPayment {
   method?: string
   amount: number
   status: PaymentStatus
+  period_year?: number
+  period_month?: number
   created_at: string
 }
 
@@ -64,8 +66,10 @@ export interface PaymentOverview {
 export interface PaymentConfig {
   monthly_dues_amount_ghs: number
   annual_affiliation_amount_ghs: number
+  annual_total_ghs?: number
   currency: string
   default_provider: string
+  combined_monthly?: boolean
   paystack_enabled: boolean
   moolre_enabled: boolean
 }

@@ -43,7 +43,8 @@ function statusLabel(user: MemberUser): string {
 }
 
 function duesBadgeClass(status?: string): string {
-  if (status === 'PAID') return 'badge badge-active'
+  const normalized = String(status || '').toUpperCase()
+  if (normalized === 'PAID' || normalized === 'YES') return 'badge badge-active'
   return 'badge badge-warning'
 }
 
@@ -594,7 +595,7 @@ export function UsersPage() {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Monthly Dues Status</label>
+                  <label className="form-label">This Month Dues Status</label>
                   <select
                     className="form-select"
                     value={editBuffer.month_dues_paid_status}
@@ -603,12 +604,13 @@ export function UsersPage() {
                     }
                   >
                     <option value="">Pending</option>
-                    <option value="PAID">Paid</option>
-                    <option value="UNPAID">Unpaid</option>
+                    <option value="YES">Paid</option>
+                    <option value="NO">Unpaid</option>
+                    <option value="PAID">Paid (legacy)</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Annual Affiliation Status</label>
+                  <label className="form-label">Year Standing (no arrears)</label>
                   <select
                     className="form-select"
                     value={editBuffer.year_affiliation_paid_status}
@@ -617,8 +619,9 @@ export function UsersPage() {
                     }
                   >
                     <option value="">Pending</option>
-                    <option value="PAID">Paid</option>
-                    <option value="UNPAID">Unpaid</option>
+                    <option value="YES">Paid</option>
+                    <option value="NO">Unpaid</option>
+                    <option value="PAID">Paid (legacy)</option>
                   </select>
                 </div>
 

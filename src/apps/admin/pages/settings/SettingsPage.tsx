@@ -30,10 +30,12 @@ export function SettingsPage() {
   })
 
   const [pricing, setPricing] = useState({
-    monthlyDuesGhs: 50,
-    annualAffiliationGhs: 200,
+    monthlyDuesGhs: 20,
+    annualAffiliationGhs: 0,
+    annualTotalGhs: 240,
     currency: 'GHS',
-    defaultProvider: 'moolre',
+    defaultProvider: 'paystack',
+    combinedMonthly: true,
   })
 
   const [notifications, setNotifications] = useState({
@@ -70,8 +72,10 @@ export function SettingsPage() {
       setPricing({
         monthlyDuesGhs: config.monthly_dues_amount_ghs,
         annualAffiliationGhs: config.annual_affiliation_amount_ghs,
+        annualTotalGhs: config.annual_total_ghs ?? config.monthly_dues_amount_ghs * 12,
         currency: config.currency,
         defaultProvider: config.default_provider,
+        combinedMonthly: config.combined_monthly ?? true,
       })
     } catch (err: unknown) {
       console.warn('Could not load payment config:', err instanceof ApiError ? err.message : err)
@@ -257,34 +261,33 @@ export function SettingsPage() {
             ) : (
               <>
                 <p className="settings-hint">
-                  Set the amounts members pay for monthly dues and annual affiliation through the member app.
+                  Members pay dues and affiliation together as one monthly Paystack bill. The amount is
+                  configured on the server.
                 </p>
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Monthly Membership Dues ({pricing.currency})</label>
+                    <label className="form-label">Monthly membership bill ({pricing.currency})</label>
                     <input
                       type="number"
                       className="form-input"
                       min={0}
                       step={0.01}
                       value={pricing.monthlyDuesGhs}
-                      onChange={(e) =>
-                        setPricing((p) => ({ ...p, monthlyDuesGhs: Number(e.target.value) }))
-                      }
+                      readOnly
+                      style={{ background: '#f5f6fa' }}
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Annual Affiliation Fee ({pricing.currency})</label>
+                    <label className="form-label">Annual total ({pricing.currency})</label>
                     <input
                       type="number"
                       className="form-input"
                       min={0}
                       step={0.01}
-                      value={pricing.annualAffiliationGhs}
-                      onChange={(e) =>
-                        setPricing((p) => ({ ...p, annualAffiliationGhs: Number(e.target.value) }))
-                      }
+                      value={pricing.annualTotalGhs}
+                      readOnly
+                      style={{ background: '#f5f6fa' }}
                     />
                   </div>
                 </div>
@@ -302,9 +305,12 @@ export function SettingsPage() {
 
                 <div className="surge-preview">
                   <i className="ri-information-line" />
-                  Members are charged <strong>{pricing.currency} {pricing.monthlyDuesGhs.toFixed(2)}</strong> for
-                  monthly dues and <strong>{pricing.currency} {pricing.annualAffiliationGhs.toFixed(2)}</strong> for
-                  annual affiliation.
+                  Each month members are charged{' '}
+                  <strong>
+                    {pricing.currency} {pricing.monthlyDuesGhs.toFixed(2)}
+                  </strong>{' '}
+                  covering dues and affiliation together ({pricing.currency}{' '}
+                  {pricing.annualTotalGhs.toFixed(2)} over 12 months). Checkout is Paystack.
                 </div>
               </>
             )}

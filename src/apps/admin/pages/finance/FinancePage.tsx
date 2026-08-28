@@ -7,7 +7,7 @@ import { ApiError } from '../../core/utils/apiError'
 import { formatGhs } from '../../core/utils/formatGhs'
 
 const TYPE_LABELS: Record<PaymentType, string> = {
-  monthly_dues: 'Monthly Dues',
+  monthly_dues: 'Monthly Membership',
   annual_affiliation: 'Annual Affiliation',
   refund: 'Refund',
 }
@@ -23,6 +23,13 @@ const METHOD_LABELS: Record<string, string> = {
 
 function formatPaymentDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+function formatPeriod(year?: number, month?: number): string {
+  if (!year || !month || month < 1 || month > 12) return '—'
+  return `${MONTH_SHORT[month - 1]} ${year}`
 }
 
 function titleCaseStatus(status: string): string {
@@ -172,7 +179,7 @@ export function FinancePage() {
           </div>
           <div>
             <p className="stat-val">{formatGhs(overview?.dues_collected_ghs ?? 0)}</p>
-            <p className="stat-lbl">Dues Collected</p>
+            <p className="stat-lbl">Membership Collected</p>
           </div>
         </div>
         <div className="stat-card">
@@ -271,7 +278,7 @@ export function FinancePage() {
               onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
             >
               <option value="All">All Types</option>
-              <option value="monthly_dues">Monthly Dues</option>
+              <option value="monthly_dues">Monthly Membership</option>
               <option value="annual_affiliation">Annual Affiliation</option>
               <option value="refund">Refund</option>
             </select>
@@ -294,6 +301,7 @@ export function FinancePage() {
               <tr>
                 <th>Reference</th>
                 <th>Member</th>
+                <th>Period</th>
                 <th>Type</th>
                 <th>Method</th>
                 <th>Amount</th>
@@ -304,7 +312,7 @@ export function FinancePage() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={7}>
+                  <td colSpan={8}>
                     <div className="empty-state">
                       <i className="ri-loader-4-line spin" /> Loading payments...
                     </div>
@@ -317,6 +325,7 @@ export function FinancePage() {
                     <tr key={t.id}>
                       <td className="td-track">{t.reference}</td>
                       <td>{t.user.full_name}</td>
+                      <td>{formatPeriod(t.period_year, t.period_month)}</td>
                       <td>{TYPE_LABELS[t.type] ?? t.type}</td>
                       <td>{METHOD_LABELS[t.method ?? ''] ?? t.method ?? '—'}</td>
                       <td style={{ fontWeight: 600 }}>
@@ -343,7 +352,7 @@ export function FinancePage() {
                   ))}
                   {filteredTransactions.length === 0 && (
                     <tr>
-                      <td colSpan={7}>
+                      <td colSpan={8}>
                         <div className="empty-state">
                           <i className="ri-inbox-line" />
                           No transactions match your filters
@@ -387,7 +396,7 @@ export function FinancePage() {
             </div>
 
             <p className="modal-sub">
-              Use this when a member was charged but their dues or affiliation status was not updated due to a missed webhook.
+              Use this when a member was charged but their monthly membership status was not updated due to a missed webhook.
             </p>
 
             {activateError && (
