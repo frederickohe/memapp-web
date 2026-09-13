@@ -26,11 +26,11 @@ export function isYlearnHost(hostname: string = window.location.hostname): boole
 }
 
 export function ylearnBasePath(hostname: string = window.location.hostname): string {
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return '/ylearn'
+  if (hostname.startsWith(YLEARN_HOST_PREFIX)) {
+    return ''
   }
 
-  return ''
+  return '/ylearn'
 }
 
 export function ylearnPortalUrl(hostname: string = window.location.hostname): string {
@@ -43,7 +43,11 @@ export function ylearnPortalUrl(hostname: string = window.location.hostname): st
     return `https://${baseHost}`
   }
 
-  return `https://${YLEARN_HOST_PREFIX}${baseHost}`
+  if (baseHost.startsWith(ADMIN_HOST_PREFIX)) {
+    return `https://${baseHost.slice(ADMIN_HOST_PREFIX.length)}/ylearn`
+  }
+
+  return `https://${baseHost}/ylearn`
 }
 
 export function adminBasePath(hostname: string = window.location.hostname): string {

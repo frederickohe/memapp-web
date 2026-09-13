@@ -20,14 +20,29 @@ import { UserRolesPage } from '../apps/admin/pages/user-roles/UserRolesPage'
 import { SettingsPage } from '../apps/admin/pages/settings/SettingsPage'
 import { WebsiteLayout } from '../apps/website/WebsiteLayout'
 import { HomePage } from '../apps/website/pages/HomePage'
+import { PrivacyPage } from '../apps/website/pages/PrivacyPage'
+import { TermsPage } from '../apps/website/pages/TermsPage'
+import { AccountDeletionPage } from '../apps/website/pages/AccountDeletionPage'
 import { YlearnApp } from '../apps/ylearn/YlearnApp'
+
+function PublicWebsiteRoutes() {
+  return (
+    <>
+      <Route path="/ylearn/*" element={<YlearnApp />} />
+      <Route element={<WebsiteLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="privacy" element={<PrivacyPage />} />
+        <Route path="terms" element={<TermsPage />} />
+        <Route path="account-deletion" element={<AccountDeletionPage />} />
+      </Route>
+    </>
+  )
+}
 
 function LocalRoutes() {
   return (
     <Routes>
-      <Route element={<WebsiteLayout />}>
-        <Route index element={<HomePage />} />
-      </Route>
+      {PublicWebsiteRoutes()}
 
       <Route path="/admin/*" element={<AdminApp />}>
         <Route element={<RequireGuest />}>
@@ -54,8 +69,6 @@ function LocalRoutes() {
           </Route>
         </Route>
       </Route>
-
-      <Route path="/ylearn/*" element={<YlearnApp />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -107,10 +120,8 @@ function ProductionYlearnRoutes() {
 function WebsiteRoutes() {
   return (
     <Routes>
-      <Route element={<WebsiteLayout />}>
-        <Route index element={<HomePage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
+      {PublicWebsiteRoutes()}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

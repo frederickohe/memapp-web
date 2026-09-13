@@ -9,6 +9,8 @@ export interface MemberUser {
   phone?: string
   member_id?: string
   membership_type?: string
+  date_joined_organization?: string
+  past_positions?: string[]
   current_branch?: string
   branch_id?: string
   branch_name?: string
@@ -20,6 +22,12 @@ export interface MemberUser {
   is_prominent: boolean
   prominent_order: number
   prominent_headline?: string
+  user_type?: string
+  role_id?: string
+  role_name?: string
+  position?: string
+  assigned_region?: string
+  assigned_branch?: string
   is_active: boolean
   status: MemberUserStatus
   created_at: string
@@ -56,6 +64,8 @@ export interface UpdateMemberUserRequest {
   phone?: string
   member_id?: string
   membership_type?: string
+  date_joined_organization?: string
+  past_positions?: string[]
   current_branch?: string
   branch_id?: string
   month_dues_paid_status?: string
@@ -63,4 +73,10 @@ export interface UpdateMemberUserRequest {
   is_prominent?: boolean
   prominent_order?: number
   prominent_headline?: string
+}
+
+export interface AssignMemberRoleRequest {
+  role_id?: string | null
+  assigned_region?: string
+  assigned_branch?: string
 }

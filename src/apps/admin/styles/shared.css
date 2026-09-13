@@ -392,6 +392,12 @@
   color: #555;
   margin-bottom: 6px;
 }
+.form-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #6b7280;
+}
 .form-input, .form-select, .form-textarea {
   width: 100%;
   border: 1px solid #e5e7eb;

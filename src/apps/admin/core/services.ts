@@ -37,6 +37,7 @@ import type {
   MemberUserListParams,
   MemberUserOverview,
   UpdateMemberUserRequest,
+  AssignMemberRoleRequest,
   VolunteerHoursSubmission,
   VhsSubmissionListData,
   VhsSubmissionListParams,
@@ -295,6 +296,12 @@ export const memberUserApi = {
   update(id: string, payload: UpdateMemberUserRequest) {
     return apiData<MemberUser>(API_ENDPOINTS.adminMembers.update(id), {
       method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  },
+  assignRole(id: string, payload: AssignMemberRoleRequest) {
+    return apiData<MemberUser>(API_ENDPOINTS.adminMembers.assignRole(id), {
+      method: 'POST',
       body: JSON.stringify(payload),
     })
   },

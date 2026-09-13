@@ -93,7 +93,7 @@ export function AdminLayout() {
             <span className="uname">{adminName}</span>
             <span className="urole">{adminRoleName}</span>
           </div>
-          <i className="ri-arrow-down-s-line" style={{ color: '#bbb', marginLeft: 'auto' }} />
+          <i className="ri-arrow-down-s-line" style={{ color: '#888', marginLeft: 'auto' }} />
 
           {userMenuOpen === 'sidebar' && (
             <div className="user-menu" onClick={(e) => e.stopPropagation()}>
@@ -178,7 +178,7 @@ export function AdminLayout() {
           letter-spacing: -0.5px;
           line-height: 1.2;
         }
-        .logo-volt { color: #ffffff; }
+        .logo-volt { color: #111111; }
         .logo-go { color: #ed1c24; }
       `}</style>
     </div>

@@ -6,10 +6,17 @@ Single React app for the **Ymca Member App** public website and admin dashboard.
 
 | Host | App |
 |---|---|
-| `ymemberapp.com` | Public member website |
+| `ymemberapp.com` | Public member website, legal pages, and learning portal at `/ylearn` |
 | `admin.ymemberapp.com` | Admin dashboard |
 
 Both hosts serve the same production build. Routing is based on hostname.
+
+Store listing URLs (must stay live):
+
+- Privacy policy: https://ymemberapp.com/privacy
+- Terms of use: https://ymemberapp.com/terms
+- Account deletion: https://ymemberapp.com/account-deletion
+- Learning portal: https://ymemberapp.com/ylearn
 
 ## Requirements
 
@@ -23,6 +30,8 @@ npm run dev
 ```
 
 - Website: http://localhost:5173/
+- Learning portal: http://localhost:5173/ylearn
+- Privacy / terms / deletion: http://localhost:5173/privacy, `/terms`, `/account-deletion`
 - Admin login: http://localhost:5173/admin/login
 - Admin dashboard: http://localhost:5173/admin/dashboard
 

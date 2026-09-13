@@ -1,0 +1,73 @@
+.page {
+  color: #111111;
+}
+
+.kicker {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ed1c24;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: #111111;
+}
+
+.updated {
+  margin: 0 0 2rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.section + .section {
+  margin-top: 1.75rem;
+}
+
+.section h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111111;
+}
+
+.section p,
+.section li {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #334155;
+}
+
+.section ul {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.section a {
+  color: #ed1c24;
+  font-weight: 600;
+}
+
+.cta {
+  margin-top: 2.5rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #ececec;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.cta p {
+  margin: 0 0 0.75rem;
+  color: #334155;
+}
+
+.cta a {
+  color: #ed1c24;
+  font-weight: 700;
+}

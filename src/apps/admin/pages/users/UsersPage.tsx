@@ -1,12 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ScopeFilterBar } from '../../components/ScopeFilterBar'
-import { branchApi, memberUserApi } from '../../core/services'
-import type { Branch, MemberUser, MemberUserOverview, MemberUserStatus, ScopeFilterParams } from '../../core/models'
+import { branchApi, memberUserApi, roleApi } from '../../core/services'
+import type { Branch, MemberUser, MemberUserOverview, MemberUserStatus, Region, Role, ScopeFilterParams } from '../../core/models'
 import { ApiError } from '../../core/utils/apiError'
 import '../../styles/shared.css'
 import './users.css'
 
-const MEMBERSHIP_TYPES = ['BASIC', 'STANDARD', 'PREMIUM', 'VIP']
+const MEMBERSHIP_TYPES = ['Student', 'Individual', 'Family', 'Corporate', 'BASIC', 'STANDARD', 'PREMIUM', 'VIP']
+
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: 'Super Admin',
+  national_admin: 'National Admin',
+  regional_admin: 'Regional Admin',
+  branch_admin: 'Branch Admin',
+}
+
+function roleLabel(name?: string | null): string {
+  if (!name) return 'Member'
+  return ROLE_LABELS[name] ?? name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
 
 type UpdateMemberUserForm = {
   full_name: string
@@ -14,6 +26,8 @@ type UpdateMemberUserForm = {
   phone: string
   member_id: string
   membership_type: string
+  date_joined_organization: string
+  past_positions: string
   current_branch: string
   branch_id: string
   month_dues_paid_status: string
@@ -21,10 +35,17 @@ type UpdateMemberUserForm = {
   is_prominent: boolean
   prominent_order: number
   prominent_headline: string
+  role_id: string
+  assigned_region: string
+  assigned_branch: string
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', {
+  const dateOnly = iso.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  const date = dateOnly
+    ? new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+    : new Date(iso)
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -71,6 +92,8 @@ export function UsersPage() {
   const [scopeFilter, setScopeFilter] = useState<ScopeFilterParams>({ scope: 'national' })
   const [membershipFilter, setMembershipFilter] = useState('All')
   const [branches, setBranches] = useState<Branch[]>([])
+  const [regions, setRegions] = useState<Region[]>([])
+  const [roles, setRoles] = useState<Role[]>([])
 
   const [selectedUser, setSelectedUser] = useState<MemberUser | null>(null)
   const [editMode, setEditMode] = useState(false)
@@ -92,6 +115,8 @@ export function UsersPage() {
 
   useEffect(() => {
     void branchApi.listBranches().then(setBranches).catch(() => setBranches([]))
+    void branchApi.listRegions().then(setRegions).catch(() => setRegions([]))
+    void roleApi.listRoles(false).then(setRoles).catch(() => setRoles([]))
   }, [])
 
   const load = useCallback(
@@ -186,6 +211,8 @@ export function UsersPage() {
           phone: current.phone ?? '',
           member_id: current.member_id ?? '',
           membership_type: current.membership_type ?? '',
+          date_joined_organization: current.date_joined_organization ?? '',
+          past_positions: (current.past_positions ?? []).join(', '),
           current_branch: current.current_branch ?? '',
           branch_id: current.branch_id ?? '',
           month_dues_paid_status: current.month_dues_paid_status ?? '',
@@ -193,6 +220,9 @@ export function UsersPage() {
           is_prominent: current.is_prominent ?? false,
           prominent_order: current.prominent_order ?? 0,
           prominent_headline: current.prominent_headline ?? '',
+          role_id: current.role_id ?? '',
+          assigned_region: current.assigned_region ?? current.region_name ?? '',
+          assigned_branch: current.assigned_branch ?? current.branch_name ?? current.current_branch ?? '',
         })
         setEditMode(true)
       }
@@ -207,12 +237,17 @@ export function UsersPage() {
     setActionError(null)
 
     try {
-      const updated = await memberUserApi.update(selectedUser.id, {
+      let updated = await memberUserApi.update(selectedUser.id, {
         full_name: editBuffer.full_name,
         email: editBuffer.email,
         phone: editBuffer.phone || undefined,
         member_id: editBuffer.member_id || undefined,
         membership_type: editBuffer.membership_type || undefined,
+        date_joined_organization: editBuffer.date_joined_organization || undefined,
+        past_positions: editBuffer.past_positions
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean),
         current_branch: editBuffer.current_branch || undefined,
         branch_id: editBuffer.branch_id || undefined,
         month_dues_paid_status: editBuffer.month_dues_paid_status || undefined,
@@ -221,6 +256,15 @@ export function UsersPage() {
         prominent_order: editBuffer.prominent_order,
         prominent_headline: editBuffer.prominent_headline || undefined,
       })
+
+      const previousRoleId = selectedUser.role_id ?? ''
+      if (editBuffer.role_id !== previousRoleId) {
+        updated = await memberUserApi.assignRole(selectedUser.id, {
+          role_id: editBuffer.role_id || null,
+          assigned_region: editBuffer.assigned_region || undefined,
+          assigned_branch: editBuffer.assigned_branch || undefined,
+        })
+      }
       setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
       setSelectedUser(updated)
       setEditMode(false)
@@ -324,6 +368,7 @@ export function UsersPage() {
                 <th>User</th>
                 <th>Branch</th>
                 <th>Membership</th>
+                <th>Position</th>
                 <th>Volunteer Pts</th>
                 <th>Dues</th>
                 <th>Status</th>
@@ -348,6 +393,7 @@ export function UsersPage() {
                   </td>
                   <td>{user.branch_name || user.current_branch || '—'}</td>
                   <td>{user.membership_type || '—'}</td>
+                  <td>{user.position || roleLabel(user.role_name)}</td>
                   <td>{user.volunteer_points}</td>
                   <td>
                     <span className={duesBadgeClass(user.month_dues_paid_status)}>
@@ -375,7 +421,7 @@ export function UsersPage() {
               ))}
               {!loading && users.length === 0 && (
                 <tr>
-                  <td colSpan={7}>
+                  <td colSpan={8}>
                     <div className="empty-state">
                       <i className="ri-inbox-line" />
                       No users match your filters
@@ -448,6 +494,11 @@ export function UsersPage() {
                     <span className={statusBadgeClass(selectedUser)} style={{ marginTop: 6 }}>
                       {statusLabel(selectedUser)}
                     </span>
+                    {selectedUser.user_type === 'ADMIN' && (
+                      <span className="badge badge-active" style={{ marginLeft: 8, marginTop: 6 }}>
+                        Admin
+                      </span>
+                    )}
                     {selectedUser.is_prominent && (
                       <span className="badge badge-active" style={{ marginLeft: 8, marginTop: 6 }}>
                         Prominent Profile
@@ -472,6 +523,28 @@ export function UsersPage() {
                   <div className="info-item">
                     <span className="info-label">Membership</span>
                     <span className="info-value">{selectedUser.membership_type || '—'}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Date Joined YMCA</span>
+                    <span className="info-value">
+                      {selectedUser.date_joined_organization
+                        ? formatDate(selectedUser.date_joined_organization)
+                        : '—'}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Past Positions</span>
+                    <span className="info-value">
+                      {selectedUser.past_positions?.length
+                        ? selectedUser.past_positions.join(', ')
+                        : '—'}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Position / Role</span>
+                    <span className="info-value">
+                      {selectedUser.position || roleLabel(selectedUser.role_name)}
+                    </span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Monthly Dues</span>
@@ -594,6 +667,108 @@ export function UsersPage() {
                     ))}
                   </select>
                 </div>
+                <div className="form-group">
+                  <label className="form-label">Date Joined YMCA</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={editBuffer.date_joined_organization}
+                    onChange={(e) =>
+                      setEditBuffer({ ...editBuffer, date_joined_organization: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Past Positions</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Secretary, Treasurer"
+                    value={editBuffer.past_positions}
+                    onChange={(e) =>
+                      setEditBuffer({ ...editBuffer, past_positions: e.target.value })
+                    }
+                  />
+                </div>
+                {roles.length > 0 && (
+                  <>
+                    <div className="form-group">
+                      <label className="form-label">Position / Admin Role</label>
+                      <select
+                        className="form-select"
+                        value={editBuffer.role_id}
+                        onChange={(e) => {
+                          const nextRole = roles.find((role) => role.id === e.target.value)
+                          const branch = branches.find((item) => item.id === editBuffer.branch_id)
+                          setEditBuffer({
+                            ...editBuffer,
+                            role_id: e.target.value,
+                            assigned_region:
+                              editBuffer.assigned_region || branch?.region_name || '',
+                            assigned_branch: editBuffer.assigned_branch || branch?.name || '',
+                            ...(nextRole?.name === 'branch_admin' && branch
+                              ? { assigned_branch: branch.name }
+                              : {}),
+                            ...(nextRole?.name === 'regional_admin' && branch
+                              ? { assigned_region: branch.region_name }
+                              : {}),
+                          })
+                        }}
+                      >
+                        <option value="">Member (no admin role)</option>
+                        {roles
+                          .filter((role) => role.is_active)
+                          .map((role) => (
+                            <option key={role.id} value={role.id}>
+                              {roleLabel(role.name)}
+                            </option>
+                          ))}
+                      </select>
+                      <p className="form-hint">
+                        Assigning a role upgrades this member so they can sign in to the admin portal
+                        with their existing account.
+                      </p>
+                    </div>
+                    {roles.find((role) => role.id === editBuffer.role_id)?.name === 'regional_admin' && (
+                      <div className="form-group">
+                        <label className="form-label">Assigned Region</label>
+                        <select
+                          className="form-select"
+                          value={editBuffer.assigned_region}
+                          onChange={(e) =>
+                            setEditBuffer({ ...editBuffer, assigned_region: e.target.value })
+                          }
+                        >
+                          <option value="">Select region</option>
+                          {regions.map((region) => (
+                            <option key={region.id} value={region.name}>
+                              {region.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    {roles.find((role) => role.id === editBuffer.role_id)?.name === 'branch_admin' && (
+                      <div className="form-group">
+                        <label className="form-label">Assigned Branch</label>
+                        <select
+                          className="form-select"
+                          value={editBuffer.assigned_branch}
+                          onChange={(e) =>
+                            setEditBuffer({ ...editBuffer, assigned_branch: e.target.value })
+                          }
+                        >
+                          <option value="">Select branch</option>
+                          {branches.map((branch) => (
+                            <option key={branch.id} value={branch.name}>
+                              {branch.name} ({branch.region_name})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </>
+                )}
                 <div className="form-group">
                   <label className="form-label">This Month Dues Status</label>
                   <select

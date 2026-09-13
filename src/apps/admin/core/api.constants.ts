@@ -4,7 +4,7 @@ export const API_ENDPOINTS = {
     me: '/auth/admin/me',
     logout: '/auth/admin/signout',
     refresh: '/auth/admin/refresh',
-    changePassword: '/auth/reset-password',
+    changePassword: '/auth/admin/change-password',
   },
   adminUsers: {
     list: '/admin/users',
@@ -47,6 +47,7 @@ export const API_ENDPOINTS = {
     detail: (id: string) => `/admin/members/${id}`,
     update: (id: string) => `/admin/members/${id}`,
     deactivate: (id: string) => `/admin/members/${id}/deactivate`,
+    assignRole: (id: string) => `/admin/members/${id}/assign-role`,
   },
   forms: {
     list: '/form',

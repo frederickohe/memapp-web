@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { ylearnBasePath } from '../../config/hosts'
 import {
   RequireYlearnAdmin,
   RequireYlearnAuth,
@@ -25,6 +26,8 @@ import { AdminEditCoursePage } from './pages/admin/AdminEditCoursePage'
 import { AdminCourseEnrolmentsPage } from './pages/admin/AdminCourseEnrolmentsPage'
 
 export function YlearnRoutes() {
+  const home = ylearnBasePath() || '/'
+
   return (
     <Routes>
       <Route element={<YlearnPublicLayout />}>
@@ -60,7 +63,7 @@ export function YlearnRoutes() {
         </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="" replace />} />
+      <Route path="*" element={<Navigate to={home} replace />} />
     </Routes>
   )
 }

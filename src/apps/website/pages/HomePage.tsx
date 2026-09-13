@@ -1,5 +1,6 @@
 import { useRef, type FormEvent } from 'react'
-import { adminPortalUrl, appStoreLinks } from '../../../config/hosts'
+import { adminPortalUrl, appStoreLinks, ylearnPortalUrl } from '../../../config/hosts'
+import { legalPaths } from '../../../config/legal'
 import styles from './HomePage.module.css'
 
 const contactSubjects = [
@@ -378,6 +379,7 @@ const appLogoSrc = '/ymca-logo.png'
 export function HomePage() {
   const summaryRef = useRef<HTMLElement>(null)
   const adminUrl = adminPortalUrl()
+  const ylearnUrl = ylearnPortalUrl()
 
   const scrollToContent = () => {
     summaryRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -414,6 +416,9 @@ export function HomePage() {
           </a>
 
           <div className={styles.navLinks}>
+            <a href={ylearnUrl} className={styles.navLink}>
+              Learning Portal
+            </a>
             <a href="#contact" className={styles.navLink}>
               Contact
             </a>
@@ -464,6 +469,9 @@ export function HomePage() {
               Explore the Solution
               <ArrowRightIcon />
             </button>
+            <a className={styles.secondaryButton} href={ylearnUrl}>
+              Open Learning Portal
+            </a>
             <a className={styles.secondaryButton} href={adminUrl}>
               Login Admin Portal
             </a>
@@ -654,6 +662,9 @@ export function HomePage() {
               Contact Developers
               <ArrowRightIcon />
             </a>
+            <a href={ylearnUrl} className={styles.conclusionSecondary}>
+              Open Learning Portal
+            </a>
             <a href={adminUrl} className={styles.conclusionSecondary}>
               Login Admin Portal
             </a>
@@ -740,6 +751,12 @@ export function HomePage() {
             <img src={appLogoSrc} alt="" className={styles.pageFooterLogo} />
             <span className={styles.pageFooterText}>YMCA Ghana × GreenBrain Technologies</span>
           </div>
+          <nav className={styles.pageFooterLinks} aria-label="Legal">
+            <a href={legalPaths.privacy}>Privacy Policy</a>
+            <a href={legalPaths.terms}>Terms of Use</a>
+            <a href={legalPaths.accountDeletion}>Account Deletion</a>
+            <a href={ylearnUrl}>Learning Portal</a>
+          </nav>
           <p className={styles.pageFooterCopy}>
             © {new Date().getFullYear()} GreenBrain Technologies LTD. All rights reserved.
           </p>
