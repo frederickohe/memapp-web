@@ -205,12 +205,14 @@ export function NewsPage() {
     try {
       const payload = buildPayload()
       if (editingItem) {
-        await newsApi.update(editingItem.id, payload)
+        const updated = await newsApi.update(editingItem.id, payload)
+        setItems((current) => current.map((item) => (item.id === updated.id ? updated : item)))
       } else {
         await newsApi.create(payload)
       }
+      const targetPage = page
       closeEditor()
-      void load(page)
+      await load(targetPage)
     } catch (err: unknown) {
       setSaveError(err instanceof ApiError ? err.message : 'Failed to save.')
     } finally {

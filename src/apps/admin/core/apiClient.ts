@@ -41,7 +41,7 @@ export async function apiRequest<T>(
 
   let response: Response
   try {
-    response = await fetch(url, { ...init, headers })
+    response = await fetch(url, { cache: 'no-store', ...init, headers })
   } catch {
     throw new ApiError('Could not reach the server. Check your connection and try again.', 0)
   }
