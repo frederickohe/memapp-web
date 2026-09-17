@@ -21,6 +21,25 @@ cd "$REPO_DIR"
 git fetch origin main
 git reset --hard origin/main
 
+uid="$(id -u)"
+gid="$(id -g)"
+if [[ -d "$DIST_DIR" ]] && ! touch "$DIST_DIR/.write-test" 2>/dev/null; then
+  echo "Resetting ownership of $DIST_DIR to ${uid}:${gid}"
+  cmd="mkdir -p /web/dist && chown -R ${uid}:${gid} /web/dist"
+  if docker info >/dev/null 2>&1; then
+    docker run --rm -v "$REPO_DIR":/web alpine sh -c "$cmd"
+  elif command -v sudo >/dev/null && sudo -n docker info >/dev/null 2>&1; then
+    sudo docker run --rm -v "$REPO_DIR":/web alpine sh -c "$cmd"
+  elif command -v sudo >/dev/null && sudo -n true >/dev/null 2>&1; then
+    sudo chown -R "${uid}:${gid}" "$DIST_DIR"
+  else
+    echo "Cannot write $DIST_DIR. Add this user to the docker group or allow passwordless sudo." >&2
+    exit 1
+  fi
+else
+  rm -f "$DIST_DIR/.write-test"
+fi
+
 require_node_20
 npm ci
 npm run build

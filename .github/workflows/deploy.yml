@@ -79,10 +79,50 @@ jobs:
           script: |
             set -euo pipefail
             WEB_DIR="/var/www/memapp-web"
+            ARCHIVE="/tmp/dist.tgz"
+            STAGE="$(mktemp -d /tmp/memapp-web-dist.XXXXXX)"
+            uid="$(id -u)"
+            gid="$(id -g)"
+
+            tar -xzf "$ARCHIVE" -C "$STAGE"
+            rm -f "$ARCHIVE"
+
+            ensure_dist_writable() {
+              mkdir -p "$WEB_DIR/dist" 2>/dev/null || true
+              if touch "$WEB_DIR/dist/.write-test" 2>/dev/null; then
+                rm -f "$WEB_DIR/dist/.write-test"
+                if find "$WEB_DIR/dist" -mindepth 1 -delete 2>/dev/null; then
+                  return 0
+                fi
+              fi
+
+              echo "Resetting ownership of $WEB_DIR/dist to ${uid}:${gid}"
+              cmd="mkdir -p /web/dist && chown -R ${uid}:${gid} /web/dist && find /web/dist -mindepth 1 -delete"
+
+              if docker info >/dev/null 2>&1; then
+                docker run --rm -v "$WEB_DIR":/web alpine sh -c "$cmd"
+                return 0
+              fi
+              if command -v sudo >/dev/null 2>&1 && sudo -n docker info >/dev/null 2>&1; then
+                sudo docker run --rm -v "$WEB_DIR":/web alpine sh -c "$cmd"
+                return 0
+              fi
+              if command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
+                sudo mkdir -p "$WEB_DIR/dist"
+                sudo chown -R "${uid}:${gid}" "$WEB_DIR/dist"
+                sudo find "$WEB_DIR/dist" -mindepth 1 -delete
+                return 0
+              fi
+
+              echo "Cannot write $WEB_DIR/dist. Add $(id -un) to the docker group or allow passwordless sudo." >&2
+              exit 1
+            }
+
+            ensure_dist_writable
             mkdir -p "$WEB_DIR/dist"
-            rm -rf "$WEB_DIR/dist"/*
-            tar -xzf /tmp/dist.tgz -C "$WEB_DIR/dist"
-            rm -f /tmp/dist.tgz
+            cp -R "$STAGE"/. "$WEB_DIR/dist"/
+            rm -rf "$STAGE"
+
             if [[ -f "$WEB_DIR/runtime-config.json" ]]; then
               cp "$WEB_DIR/runtime-config.json" "$WEB_DIR/dist/config.json"
             fi
