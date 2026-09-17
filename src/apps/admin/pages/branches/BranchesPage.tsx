@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { branchesToMapMarkers, YmcaBranchMap } from '../../components/YmcaBranchMap'
 import { branchApi, memberUserApi } from '../../core/services'
 import type { Branch, CreateBranchRequest, MemberUser, Region } from '../../core/models'
 import { ApiError } from '../../core/utils/apiError'
 import '../../styles/shared.css'
+import '../dashboard/dashboard.css'
 import './branches.css'
 
 type BranchForm = {
@@ -26,29 +28,50 @@ export function BranchesPage() {
   const [error, setError] = useState<string | null>(null)
   const [regionFilter, setRegionFilter] = useState<string>('all')
   const [showModal, setShowModal] = useState(false)
+  const [showRegionModal, setShowRegionModal] = useState(false)
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null)
   const [form, setForm] = useState<BranchForm>(emptyForm())
+  const [regionName, setRegionName] = useState('')
   const [savePending, setSavePending] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-    try {
-      const [regionData, branchData, memberData] = await Promise.all([
-        branchApi.listRegions(false),
-        branchApi.listBranches(undefined, false),
-        memberUserApi.list({ limit: 100 }),
-      ])
-      setRegions(regionData)
-      setBranches(branchData)
-      setMembers(memberData.users)
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load branches.')
-    } finally {
-      setLoading(false)
+    const results = await Promise.allSettled([
+      branchApi.listRegions(false),
+      branchApi.listBranches(undefined, false),
+    ])
+    const [regionResult, branchResult] = results
+
+    if (regionResult.status === 'fulfilled') {
+      setRegions(regionResult.value)
     }
+    if (branchResult.status === 'fulfilled') {
+      setBranches(branchResult.value)
+    }
+
+    const failures = results.filter((r) => r.status === 'rejected')
+    if (failures.length > 0) {
+      const first = failures[0]
+      setError(
+        first.status === 'rejected' && first.reason instanceof ApiError
+          ? first.reason.message
+          : 'Failed to load branches.',
+      )
+    }
+    setLoading(false)
   }, [])
+
+  const loadMembers = useCallback(async () => {
+    if (members.length > 0) return
+    try {
+      const memberData = await memberUserApi.list({ limit: 100 })
+      setMembers(memberData.users)
+    } catch {
+      setMembers([])
+    }
+  }, [members.length])
 
   useEffect(() => {
     void load()
@@ -59,11 +82,25 @@ export function BranchesPage() {
     return branches.filter((b) => b.region_id === regionFilter)
   }, [branches, regionFilter])
 
+  const mapBranches = useMemo(() => branchesToMapMarkers(filteredBranches), [filteredBranches])
+
   const openCreate = () => {
     setEditingBranch(null)
     setForm(emptyForm(regions[0]?.id ?? ''))
     setSaveError(null)
     setShowModal(true)
+    void loadMembers()
+  }
+
+  const openCreateRegion = () => {
+    setRegionName('')
+    setSaveError(null)
+    setShowRegionModal(true)
+  }
+
+  const closeRegionModal = () => {
+    setShowRegionModal(false)
+    setRegionName('')
   }
 
   const openEdit = (branch: Branch) => {
@@ -78,11 +115,33 @@ export function BranchesPage() {
     })
     setSaveError(null)
     setShowModal(true)
+    void loadMembers()
   }
 
   const closeModal = () => {
     setShowModal(false)
     setEditingBranch(null)
+  }
+
+  const saveRegion = async () => {
+    const name = regionName.trim()
+    if (!name) return
+    setSavePending(true)
+    setSaveError(null)
+    try {
+      const created = await branchApi.createRegion({ name })
+      setRegions((current) =>
+        [...current.filter((region) => region.id !== created.id), created].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        ),
+      )
+      setForm((f) => ({ ...f, region_id: f.region_id || created.id }))
+      closeRegionModal()
+    } catch (err) {
+      setSaveError(err instanceof ApiError ? err.message : 'Failed to create region.')
+    } finally {
+      setSavePending(false)
+    }
   }
 
   const saveBranch = async () => {
@@ -101,15 +160,20 @@ export function BranchesPage() {
 
     try {
       if (editingBranch) {
-        await branchApi.updateBranch(editingBranch.id, {
+        const updated = await branchApi.updateBranch(editingBranch.id, {
           ...payload,
           president_id: form.president_id || null,
         })
+        setBranches((current) => current.map((branch) => (branch.id === updated.id ? updated : branch)))
       } else {
-        await branchApi.createBranch(payload)
+        const created = await branchApi.createBranch(payload)
+        setBranches((current) =>
+          [...current.filter((branch) => branch.id !== created.id), created].sort((a, b) =>
+            a.name.localeCompare(b.name),
+          ),
+        )
       }
       closeModal()
-      await load()
     } catch (err) {
       setSaveError(err instanceof ApiError ? err.message : 'Failed to save branch.')
     } finally {
@@ -119,8 +183,8 @@ export function BranchesPage() {
 
   const toggleActive = async (branch: Branch) => {
     try {
-      await branchApi.updateBranch(branch.id, { is_active: !branch.is_active })
-      await load()
+      const updated = await branchApi.updateBranch(branch.id, { is_active: !branch.is_active })
+      setBranches((current) => current.map((item) => (item.id === updated.id ? updated : item)))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to update branch status.')
     }
@@ -144,10 +208,33 @@ export function BranchesPage() {
             Manage YMCA branches and assign branch presidents
           </p>
         </div>
-        <button type="button" className="btn-green" onClick={openCreate}>
-          <i className="ri-add-line" /> Add Branch
-        </button>
+        <div className="branches-toolbar-actions">
+          <button type="button" className="btn-outline" onClick={openCreateRegion}>
+            <i className="ri-map-pin-add-line" /> Add Region
+          </button>
+          <button type="button" className="btn-green" onClick={openCreate} disabled={regions.length === 0}>
+            <i className="ri-add-line" /> Add Branch
+          </button>
+        </div>
       </div>
+
+      <section className="card map-card map-card-full">
+        <div className="card-hdr">
+          <h2 className="card-title">Branch map</h2>
+        </div>
+        <div className="map-box map-box-tall">
+          <YmcaBranchMap className="osm-map-container" branches={mapBranches} />
+        </div>
+        <div className="map-legend">
+          <span className="ldot ldot-blue" />
+          <span className="ltext">
+            {filteredBranches.length} {filteredBranches.length === 1 ? 'branch' : 'branches'}
+            {filteredBranches.some((branch) => branch.lat == null || branch.lng == null)
+              ? ' · branches without coordinates are hidden on the map'
+              : ''}
+          </span>
+        </div>
+      </section>
 
       <div className="branches-regions-row">
         <button
@@ -214,7 +301,9 @@ export function BranchesPage() {
           {filteredBranches.length === 0 && (
             <div className="empty-state">
               <i className="ri-building-line" />
-              No branches found
+              {regions.length === 0
+                ? 'Create a region first, then add a branch under it.'
+                : 'No branches found'}
             </div>
           )}
         </div>
@@ -238,17 +327,24 @@ export function BranchesPage() {
 
             <div className="form-group">
               <label className="form-label">Region</label>
-              <select
-                className="form-select"
-                value={form.region_id}
-                onChange={(e) => setForm((f) => ({ ...f, region_id: e.target.value }))}
-              >
-                {regions.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-              </select>
+              {regions.length === 0 ? (
+                <p className="form-hint">
+                  No regions yet. Close this dialog and use <strong>Add Region</strong> first.
+                </p>
+              ) : (
+                <select
+                  className="form-select"
+                  value={form.region_id}
+                  onChange={(e) => setForm((f) => ({ ...f, region_id: e.target.value }))}
+                >
+                  <option value="">Select a region</option>
+                  {regions.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="form-group">
@@ -311,10 +407,53 @@ export function BranchesPage() {
               <button
                 type="button"
                 className="btn-green"
-                disabled={savePending || !form.name.trim()}
+                disabled={savePending || !form.name.trim() || !form.region_id}
                 onClick={() => void saveBranch()}
               >
                 {savePending ? 'Saving…' : editingBranch ? 'Save changes' : 'Create branch'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRegionModal && (
+        <div className="modal-overlay" onClick={closeRegionModal}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-hdr">
+              <h3 className="modal-title">Add Region</h3>
+              <button type="button" className="modal-close" onClick={closeRegionModal}>
+                <i className="ri-close-line" />
+              </button>
+            </div>
+
+            {saveError && (
+              <div className="auth-alert auth-alert-error" style={{ marginBottom: 12 }}>
+                {saveError}
+              </div>
+            )}
+
+            <div className="form-group">
+              <label className="form-label">Region name</label>
+              <input
+                className="form-input"
+                placeholder="e.g. Central"
+                value={regionName}
+                onChange={(e) => setRegionName(e.target.value)}
+              />
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" className="btn-outline" onClick={closeRegionModal}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-green"
+                disabled={savePending || !regionName.trim()}
+                onClick={() => void saveRegion()}
+              >
+                {savePending ? 'Saving…' : 'Create region'}
               </button>
             </div>
           </div>

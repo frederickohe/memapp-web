@@ -1,0 +1,57 @@
+.ymca-branch-marker {
+  background: none;
+  border: none;
+}
+
+.ymca-branch-pin {
+  width: 32px;
+  height: 32px;
+  background: #ed1c24;
+  border: 3px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.ymca-branch-pin i {
+  transform: rotate(45deg);
+  color: #fff;
+  font-size: 14px;
+}
+
+.ymca-branch-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.ymca-branch-popup strong {
+  color: #111111;
+  font-size: 14px;
+}
+
+.ymca-branch-region {
+  color: #ed1c24;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.ymca-branch-address {
+  color: #666;
+  font-size: 12px;
+}
+
+.map-config-missing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 200px;
+  padding: 16px;
+  color: #666;
+}

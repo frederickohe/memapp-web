@@ -30,6 +30,10 @@ if ! compgen -G "$DIST_DIR/assets/"*.js > /dev/null; then
   exit 1
 fi
 
+if [[ -f "$REPO_DIR/runtime-config.json" ]]; then
+  cp "$REPO_DIR/runtime-config.json" "$DIST_DIR/config.json"
+fi
+
 cd /var/www/memappcaddy
 if docker info >/dev/null 2>&1; then
   docker compose restart caddy

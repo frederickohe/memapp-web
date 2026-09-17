@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { AdminUserListItem, Permission, Role } from '../../core/models'
-import { adminUserApi, roleApi } from '../../core/services'
-import { YMCA_BRANCHES } from '../../core/ymcaBranches'
+import type { AdminUserListItem, Branch, Permission, Region, Role } from '../../core/models'
+import { adminUserApi, branchApi, roleApi } from '../../core/services'
 import { ApiError } from '../../core/utils/apiError'
 import { formatTimeAgo } from '../../core/utils/formatTimeAgo'
 import '../../styles/admin-global.css'
@@ -35,6 +34,8 @@ export function UserRolesPage() {
   const [roles, setRoles] = useState<Role[]>([])
   const [permissions, setPermissions] = useState<Permission[]>([])
   const [adminUsers, setAdminUsers] = useState<AdminUserListItem[]>([])
+  const [regions, setRegions] = useState<Region[]>([])
+  const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -87,6 +88,18 @@ export function UserRolesPage() {
       setAdminUsers(data.users)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to load admin users.')
+    }
+
+    try {
+      const [regionData, branchData] = await Promise.all([
+        branchApi.listRegions(false),
+        branchApi.listBranches(undefined, false),
+      ])
+      setRegions(regionData)
+      setBranches(branchData)
+    } catch {
+      setRegions([])
+      setBranches([])
     } finally {
       setLoading(false)
     }
@@ -651,9 +664,9 @@ export function UserRolesPage() {
                       }
                     >
                       <option value="">Select region</option>
-                      {[...new Set(YMCA_BRANCHES.map((b) => b.region))].map((region) => (
-                        <option key={region} value={region}>
-                          {region}
+                      {regions.map((region) => (
+                        <option key={region.id} value={region.name}>
+                          {region.name}
                         </option>
                       ))}
                     </select>
@@ -670,9 +683,9 @@ export function UserRolesPage() {
                       }
                     >
                       <option value="">Select branch</option>
-                      {YMCA_BRANCHES.map((branch) => (
+                      {branches.map((branch) => (
                         <option key={branch.id} value={branch.name}>
-                          {branch.name} ({branch.region})
+                          {branch.name} ({branch.region_name})
                         </option>
                       ))}
                     </select>

@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { adminBasePath } from '../../../../config/hosts'
 import { MockDataBanner } from '../../components/MockDataBanner'
-import { getYmcaBranchCount, YmcaBranchMap } from '../../components/YmcaBranchMap'
-import { memberUserApi, paymentApi, vhsApi } from '../../core/services'
-import type { MemberUserOverview, PaymentOverview } from '../../core/models'
+import { branchesToMapMarkers, YmcaBranchMap } from '../../components/YmcaBranchMap'
+import { branchApi, memberUserApi, paymentApi, vhsApi } from '../../core/services'
+import type { Branch, MemberUserOverview, PaymentOverview } from '../../core/models'
 import { ApiError } from '../../core/utils/apiError'
 import { formatGhs } from '../../core/utils/formatGhs'
 import '../../styles/shared.css'
@@ -81,7 +81,6 @@ const CATEGORY_ICON_CLASS: Record<string, string> = {
 }
 
 export function DashboardPage() {
-  const branchCount = getYmcaBranchCount()
   const base = adminBasePath()
 
   const [loading, setLoading] = useState(true)
@@ -89,6 +88,7 @@ export function DashboardPage() {
   const [userOverview, setUserOverview] = useState<MemberUserOverview | null>(null)
   const [paymentOverview, setPaymentOverview] = useState<PaymentOverview | null>(null)
   const [pendingVhsCount, setPendingVhsCount] = useState(0)
+  const [branches, setBranches] = useState<Branch[]>([])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -98,9 +98,10 @@ export function DashboardPage() {
       memberUserApi.overview(),
       paymentApi.overview(),
       vhsApi.list({ limit: 1, status: 'pending' }),
+      branchApi.listBranches(undefined, true),
     ])
 
-    const [usersResult, paymentsResult, vhsResult] = results
+    const [usersResult, paymentsResult, vhsResult, branchesResult] = results
 
     if (usersResult.status === 'fulfilled') {
       setUserOverview(usersResult.value)
@@ -112,6 +113,10 @@ export function DashboardPage() {
 
     if (vhsResult.status === 'fulfilled') {
       setPendingVhsCount(vhsResult.value.total)
+    }
+
+    if (branchesResult.status === 'fulfilled') {
+      setBranches(branchesResult.value)
     }
 
     const failures = results.filter((r) => r.status === 'rejected')
@@ -187,13 +192,12 @@ export function DashboardPage() {
         <div className="card-hdr">
           <h2 className="card-title">YMCA Branches in Ghana</h2>
         </div>
-        <MockDataBanner message="Branch locations are based on YMCA Ghana regional offices. Click a pin for details." />
         <div className="map-box map-box-tall">
-          <YmcaBranchMap className="osm-map-container" />
+          <YmcaBranchMap className="osm-map-container" branches={branchesToMapMarkers(branches)} />
         </div>
         <div className="map-legend">
           <span className="ldot ldot-blue" />
-          <span className="ltext">{branchCount} Branches</span>
+          <span className="ltext">{branches.length} {branches.length === 1 ? 'Branch' : 'Branches'}</span>
         </div>
       </section>
 

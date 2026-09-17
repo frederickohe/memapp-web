@@ -514,12 +514,19 @@ export const storageApi = {
   },
 }
 
+function unwrapNamedList<T>(data: T[] | Record<string, unknown> | undefined, key: string): T[] {
+  if (Array.isArray(data)) return data
+  if (!data || typeof data !== 'object') return []
+  const value = data[key]
+  return Array.isArray(value) ? (value as T[]) : []
+}
+
 export const branchApi = {
   async listRegions(activeOnly = true) {
-    const data = await apiData<{ regions: Region[] }>(API_ENDPOINTS.adminBranches.regions, {
+    const data = await apiData<Region[] | { regions?: Region[] }>(API_ENDPOINTS.adminBranches.regions, {
       params: { active_only: activeOnly },
     })
-    return data.regions ?? []
+    return unwrapNamedList<Region>(data, 'regions')
   },
   createRegion(payload: { name: string }) {
     return apiData<Region>(API_ENDPOINTS.adminBranches.regions, {
@@ -534,13 +541,13 @@ export const branchApi = {
     })
   },
   async listBranches(regionId?: string, activeOnly = true) {
-    const data = await apiData<{ branches: Branch[] }>(API_ENDPOINTS.adminBranches.branches, {
+    const data = await apiData<Branch[] | { branches?: Branch[] }>(API_ENDPOINTS.adminBranches.branches, {
       params: {
         region_id: regionId,
         active_only: activeOnly,
       },
     })
-    return data.branches ?? []
+    return unwrapNamedList<Branch>(data, 'branches')
   },
   getBranch(id: string) {
     return apiData<Branch>(API_ENDPOINTS.adminBranches.branch(id))

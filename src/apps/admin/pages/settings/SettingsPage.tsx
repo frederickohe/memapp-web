@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { adminBasePath } from '../../../../config/hosts'
 import { MockDataBanner } from '../../components/MockDataBanner'
-import { paymentApi } from '../../core/services'
-import { YMCA_BRANCHES } from '../../core/ymcaBranches'
+import { branchApi, paymentApi } from '../../core/services'
+import type { Branch } from '../../core/models'
 import { ApiError } from '../../core/utils/apiError'
 import '../../styles/admin-global.css'
 import './settings.css'
@@ -17,6 +17,7 @@ export function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general')
   const [saved, setSaved] = useState(false)
   const [configLoading, setConfigLoading] = useState(false)
+  const [branches, setBranches] = useState<Branch[]>([])
 
   const [general, setGeneral] = useState({
     organizationName: 'Young Men\'s Christian Association of Ghana',
@@ -64,6 +65,10 @@ export function SettingsPage() {
       status: 'Success',
     },
   ]
+
+  useEffect(() => {
+    void branchApi.listBranches(undefined, true).then(setBranches).catch(() => setBranches([]))
+  }, [])
 
   const loadPaymentConfig = useCallback(async () => {
     setConfigLoading(true)
@@ -238,12 +243,16 @@ export function SettingsPage() {
               YMCA Ghana operates through regional offices and local branches across the country.
             </p>
             <div className="city-grid">
-              {YMCA_BRANCHES.map((branch) => (
-                <div className="city-toggle" key={branch.id} style={{ cursor: 'default' }}>
-                  <span>{branch.name}</span>
-                  <span style={{ fontSize: 11, color: '#888' }}>{branch.region}</span>
-                </div>
-              ))}
+              {branches.length === 0 ? (
+                <p className="settings-hint">No branches have been created yet.</p>
+              ) : (
+                branches.map((branch) => (
+                  <div className="city-toggle" key={branch.id} style={{ cursor: 'default' }}>
+                    <span>{branch.name}</span>
+                    <span style={{ fontSize: 11, color: '#888' }}>{branch.region_name}</span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}

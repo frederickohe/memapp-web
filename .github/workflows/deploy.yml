@@ -83,6 +83,9 @@ jobs:
             rm -rf "$WEB_DIR/dist"/*
             tar -xzf /tmp/dist.tgz -C "$WEB_DIR/dist"
             rm -f /tmp/dist.tgz
+            if [[ -f "$WEB_DIR/runtime-config.json" ]]; then
+              cp "$WEB_DIR/runtime-config.json" "$WEB_DIR/dist/config.json"
+            fi
             if [[ ! -f "$WEB_DIR/dist/index.html" ]]; then
               echo "Deploy failed: dist/index.html missing" >&2
               exit 1
