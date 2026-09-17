@@ -150,10 +150,23 @@ jobs:
 
       - name: Health check
         run: |
+          check_host() {
+            local host="$1"
+            curl -fsS -o /dev/null -w '%{http_code}' --max-time 15 --retry 3 --retry-all-errors --retry-delay 2 "$host/"
+          }
+
           for host in https://admin.ymemberapp.com https://ymemberapp.com; do
-            code="$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 15 "$host/")"
-            echo "$host -> $code"
-            if [[ "$code" != "200" ]]; then
+            ok=0
+            for i in $(seq 1 12); do
+              code="$(check_host "$host" || true)"
+              echo "attempt $i: $host -> ${code:-failed}"
+              if [[ "$code" == "200" ]]; then
+                ok=1
+                break
+              fi
+              sleep 3
+            done
+            if [[ "$ok" != "1" ]]; then
               echo "Health check failed for $host"
               exit 1
             fi
