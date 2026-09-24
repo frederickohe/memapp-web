@@ -44,7 +44,8 @@
   color: #334155;
 }
 
-.section ul {
+.section ul,
+.section ol {
   margin: 0 0 0.75rem;
   padding-left: 1.25rem;
 }

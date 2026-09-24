@@ -14,10 +14,19 @@ type BranchForm = {
   lat: string
   lng: string
   president_id: string
+  collects_dues: boolean
 }
 
 function emptyForm(regionId = ''): BranchForm {
-  return { region_id: regionId, name: '', address: '', lat: '', lng: '', president_id: '' }
+  return {
+    region_id: regionId,
+    name: '',
+    address: '',
+    lat: '',
+    lng: '',
+    president_id: '',
+    collects_dues: true,
+  }
 }
 
 export function BranchesPage() {
@@ -112,6 +121,7 @@ export function BranchesPage() {
       lat: branch.lat != null ? String(branch.lat) : '',
       lng: branch.lng != null ? String(branch.lng) : '',
       president_id: branch.president?.id ?? '',
+      collects_dues: branch.collects_dues !== false,
     })
     setSaveError(null)
     setShowModal(true)
@@ -156,6 +166,7 @@ export function BranchesPage() {
       lat: form.lat ? parseFloat(form.lat) : undefined,
       lng: form.lng ? parseFloat(form.lng) : undefined,
       president_id: form.president_id || undefined,
+      collects_dues: form.collects_dues,
     }
 
     try {
@@ -269,9 +280,14 @@ export function BranchesPage() {
                   <h3 className="branch-card-title">{branch.name}</h3>
                   <p className="branch-card-region">{branch.region_name}</p>
                 </div>
-                <span className={`badge ${branch.is_active ? 'badge-active' : 'badge-inactive'}`}>
-                  {branch.is_active ? 'Active' : 'Inactive'}
-                </span>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <span className={`badge ${branch.is_active ? 'badge-active' : 'badge-inactive'}`}>
+                    {branch.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                  <span className={`badge ${branch.collects_dues === false ? 'badge-inactive' : 'badge-active'}`}>
+                    {branch.collects_dues === false ? 'Affiliation only' : 'Dues + affiliation'}
+                  </span>
+                </div>
               </div>
               {branch.address && <p className="branch-card-meta">{branch.address}</p>}
               {branch.president ? (
@@ -382,6 +398,23 @@ export function BranchesPage() {
                   onChange={(e) => setForm((f) => ({ ...f, lng: e.target.value }))}
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Member payments</label>
+              <select
+                className="form-select"
+                value={form.collects_dues ? 'dues' : 'affiliation'}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, collects_dues: e.target.value === 'dues' }))
+                }
+              >
+                <option value="dues">Dues and affiliation</option>
+                <option value="affiliation">Affiliation only</option>
+              </select>
+              <p className="form-hint">
+                Affiliation applies to every branch. Turn dues off for branches that do not collect monthly dues.
+              </p>
             </div>
 
             <div className="form-group">

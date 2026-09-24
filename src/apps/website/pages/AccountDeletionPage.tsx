@@ -4,48 +4,45 @@ import { LegalPage, LegalSection, legalStyles } from './LegalPage'
 
 export function AccountDeletionPage() {
   return (
-    <LegalPage title="Account Deletion" updated="13 September 2026">
+    <LegalPage title="Account Deletion" updated="24 September 2026">
       <LegalSection title="How to delete your YMCA Ghana account">
         <p>
-          You can request permanent deletion of your YMCA Ghana Member App account at any
-          time. Deletion is available to every user who created an account in the mobile
-          app or on the web portals.
+          You can permanently delete your YMCA Ghana Member App account at any time from
+          inside the app. Deletion is available to every user who created an account.
         </p>
-        <p>Send an email from the address on your account to:</p>
+        <ol>
+          <li>Open the YMCA Ghana app and sign in.</li>
+          <li>Go to Profile, then Settings.</li>
+          <li>Choose Delete account.</li>
+          <li>Read what will be removed, then confirm.</li>
+        </ol>
         <p>
-          <a href={`mailto:${legalContact.email}?subject=YMCA%20account%20deletion%20request`}>
-            {legalContact.email}
-          </a>
-        </p>
-        <p>Use the subject line “YMCA account deletion request” and include:</p>
-        <ul>
-          <li>Full name on the account</li>
-          <li>Registered email and phone number</li>
-          <li>Branch, if you know it</li>
-          <li>A short statement that you want the account permanently deleted</li>
-        </ul>
-        <p>
-          You can also ask a branch, regional, or national administrator to start deletion
-          for you, or call {legalContact.phone}.
+          Deletion happens immediately. You are signed out, and that email and phone
+          number can no longer be used to sign in. Uninstalling the app does not delete
+          your account.
         </p>
       </LegalSection>
 
-      <LegalSection title="What happens next">
-        <ul>
-          <li>We verify that the request comes from the account holder.</li>
-          <li>We delete or deactivate the account within 14 days of verification.</li>
-          <li>You will receive a confirmation email when deletion is complete.</li>
-          <li>After deletion you will no longer be able to sign in to the member app, admin portal, or learning portal with that account.</li>
-        </ul>
+      <LegalSection title="If you cannot open the app">
+        <p>
+          Send an email from the address on your account to{' '}
+          <a href={`mailto:${legalContact.email}?subject=YMCA%20account%20deletion%20request`}>
+            {legalContact.email}
+          </a>
+          . Use the subject line “YMCA account deletion request” and include your full
+          name, registered email, phone number, and branch if you know it. You can also
+          call {legalContact.phone}. We complete verified email or phone requests within
+          14 days.
+        </p>
       </LegalSection>
 
       <LegalSection title="Data that is deleted">
         <p>When your account is deleted we remove:</p>
         <ul>
           <li>Your profile, login credentials, and membership record</li>
-          <li>Photos, social links, and other content you uploaded</li>
-          <li>App preferences, device PIN, and notification settings</li>
-          <li>Learning enrolments and in-app messages associated with your user id</li>
+          <li>Photos, posts, social links, and other content you uploaded</li>
+          <li>Survey answers, messages, and notification history</li>
+          <li>App preferences and the device PIN stored on this phone</li>
         </ul>
       </LegalSection>
 
@@ -55,13 +52,6 @@ export function AccountDeletionPage() {
           audit reasons. This can include payment receipts, volunteer-hour approvals, and
           anonymised statistics that no longer identify you. Retained records are not used
           to restore your account.
-        </p>
-      </LegalSection>
-
-      <LegalSection title="If you only want to stop using the app">
-        <p>
-          Uninstalling the app does not delete your account. To remove your personal data
-          you must submit a deletion request as described above.
         </p>
       </LegalSection>
 

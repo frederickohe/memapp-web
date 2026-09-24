@@ -4,7 +4,7 @@ import { LegalPage, LegalSection, legalStyles } from './LegalPage'
 
 export function PrivacyPage() {
   return (
-    <LegalPage title="Privacy Policy" updated="13 September 2026">
+    <LegalPage title="Privacy Policy" updated="24 September 2026">
       <LegalSection title="Who we are">
         <p>
           The YMCA Ghana Member App is operated by {legalContact.operator} for{' '}
@@ -54,10 +54,10 @@ export function PrivacyPage() {
 
       <LegalSection title="Your choices">
         <p>
-          You can update profile details in the app, turn off optional notifications, or
-          request a copy or deletion of your account. See our{' '}
-          <Link to={legalPaths.accountDeletion}>Account deletion</Link> page for the
-          deletion process.
+          You can update profile details in the app and turn off optional notifications.
+          To delete your account, open Settings and choose Delete account. See our{' '}
+          <Link to={legalPaths.accountDeletion}>Account deletion</Link> page for what is
+          removed and what may be retained.
         </p>
       </LegalSection>
 

@@ -270,8 +270,9 @@ export function SettingsPage() {
             ) : (
               <>
                 <p className="settings-hint">
-                  Members pay dues and affiliation together as one monthly Paystack bill. The amount is
-                  configured on the server.
+                  Branches that collect dues pay one monthly Paystack bill covering dues and affiliation.
+                  Branches set to affiliation only are not billed monthly dues. Their annual affiliation
+                  fee is {pricing.currency} {pricing.annualAffiliationGhs.toFixed(2)}.
                 </p>
 
                 <div className="form-row">

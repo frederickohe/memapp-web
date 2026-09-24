@@ -66,7 +66,17 @@ function statusLabel(user: MemberUser): string {
 function duesBadgeClass(status?: string): string {
   const normalized = String(status || '').toUpperCase()
   if (normalized === 'PAID' || normalized === 'YES') return 'badge badge-active'
+  if (normalized === 'NOT_REQUIRED' || normalized === 'N/A') return 'badge badge-inactive'
   return 'badge badge-warning'
+}
+
+function duesLabel(status?: string): string {
+  const normalized = String(status || '').toUpperCase()
+  if (!normalized) return 'Pending'
+  if (normalized === 'YES' || normalized === 'PAID') return 'Paid'
+  if (normalized === 'NOT_REQUIRED' || normalized === 'N/A') return 'Not required'
+  if (normalized === 'NO' || normalized === 'UNPAID' || normalized === 'PENDING') return 'Unpaid'
+  return status || 'Pending'
 }
 
 function userInitials(name: string): string {
@@ -397,7 +407,7 @@ export function UsersPage() {
                   <td>{user.volunteer_points}</td>
                   <td>
                     <span className={duesBadgeClass(user.month_dues_paid_status)}>
-                      {user.month_dues_paid_status ?? 'Pending'}
+                      {duesLabel(user.month_dues_paid_status)}
                     </span>
                   </td>
                   <td>
@@ -548,11 +558,11 @@ export function UsersPage() {
                   </div>
                   <div className="info-item">
                     <span className="info-label">Monthly Dues</span>
-                    <span className="info-value">{selectedUser.month_dues_paid_status ?? 'Pending'}</span>
+                    <span className="info-value">{duesLabel(selectedUser.month_dues_paid_status)}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Annual Affiliation</span>
-                    <span className="info-value">{selectedUser.year_affiliation_paid_status ?? 'Pending'}</span>
+                    <span className="info-value">{duesLabel(selectedUser.year_affiliation_paid_status)}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Volunteer Points</span>

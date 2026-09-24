@@ -27,6 +27,7 @@ export interface Branch {
   lng?: number | null
   president?: BranchPresident | null
   is_active: boolean
+  collects_dues: boolean
   created_at: string
 }
 
@@ -46,6 +47,7 @@ export interface CreateBranchRequest {
   lat?: number
   lng?: number
   president_id?: string
+  collects_dues?: boolean
 }
 
 export interface UpdateBranchRequest {
@@ -56,6 +58,7 @@ export interface UpdateBranchRequest {
   lng?: number
   president_id?: string | null
   is_active?: boolean
+  collects_dues?: boolean
 }
 
 export interface AssignPresidentRequest {
