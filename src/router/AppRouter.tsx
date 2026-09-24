@@ -23,6 +23,7 @@ import { HomePage } from '../apps/website/pages/HomePage'
 import { PrivacyPage } from '../apps/website/pages/PrivacyPage'
 import { TermsPage } from '../apps/website/pages/TermsPage'
 import { AccountDeletionPage } from '../apps/website/pages/AccountDeletionPage'
+import { FillFormPage } from '../apps/website/pages/FillFormPage'
 import { YlearnApp } from '../apps/ylearn/YlearnApp'
 
 function PublicWebsiteRoutes() {
@@ -34,6 +35,7 @@ function PublicWebsiteRoutes() {
         <Route path="privacy" element={<PrivacyPage />} />
         <Route path="terms" element={<TermsPage />} />
         <Route path="account-deletion" element={<AccountDeletionPage />} />
+        <Route path="forms/:formId" element={<FillFormPage />} />
       </Route>
     </>
   )

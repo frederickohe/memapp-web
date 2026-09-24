@@ -71,6 +71,26 @@ export function adminPortalUrl(hostname: string = window.location.hostname): str
   return `https://${ADMIN_HOST_PREFIX}${baseHost}`
 }
 
+export function publicSiteOrigin(hostname: string = window.location.hostname): string {
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return window.location.origin
+  }
+
+  const baseHost = hostname.replace(/^www\./, '')
+  if (baseHost.startsWith(ADMIN_HOST_PREFIX)) {
+    return `https://${baseHost.slice(ADMIN_HOST_PREFIX.length)}`
+  }
+  if (baseHost.startsWith(YLEARN_HOST_PREFIX)) {
+    return `https://${baseHost.slice(YLEARN_HOST_PREFIX.length)}`
+  }
+
+  return `https://${baseHost}`
+}
+
+export function formFillUrl(formId: string, hostname: string = window.location.hostname): string {
+  return `${publicSiteOrigin(hostname)}/forms/${encodeURIComponent(formId)}`
+}
+
 export const appStoreLinks = {
   playStore:
     import.meta.env.VITE_PLAY_STORE_URL ??

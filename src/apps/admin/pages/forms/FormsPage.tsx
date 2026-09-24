@@ -9,6 +9,7 @@ import type {
   FormResponseRecord,
 } from '../../core/models'
 import { ApiError } from '../../core/utils/apiError'
+import { formFillUrl } from '../../../../config/hosts'
 import './forms.css'
 
 type StatusFilter = 'All' | 'active' | 'inactive'
@@ -135,6 +136,7 @@ export function FormsPage() {
   const [selectedResponse, setSelectedResponse] = useState<FormResponseRecord | null>(null)
   const [exportPending, setExportPending] = useState(false)
   const [deletePending, setDeletePending] = useState<string | null>(null)
+  const [copiedFormId, setCopiedFormId] = useState<string | null>(null)
 
   const load = useCallback(
     async (targetPage = 1) => {
@@ -507,6 +509,22 @@ export function FormsPage() {
                     <td>{formatDate(form.created_at)}</td>
                     <td>
                       <div className="row-actions-inline">
+                        <button
+                          type="button"
+                          className="btn-icon-only"
+                          title={copiedFormId === form.id ? 'Link copied' : 'Copy fill link'}
+                          onClick={() => {
+                            const url = formFillUrl(form.id)
+                            void navigator.clipboard.writeText(url).then(() => {
+                              setCopiedFormId(form.id)
+                              window.setTimeout(() => setCopiedFormId((current) => (current === form.id ? null : current)), 2000)
+                            }).catch(() => {
+                              window.prompt('Copy this form link', url)
+                            })
+                          }}
+                        >
+                          <i className={copiedFormId === form.id ? 'ri-check-line' : 'ri-link'} />
+                        </button>
                         <button type="button" className="btn-icon-only" title="View responses" onClick={() => openResponses(form)}>
                           <i className="ri-bar-chart-box-line" />
                         </button>
