@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useParams } from 'react-router-dom'
 import { API_BASE_URL } from '../../../config/env'
 import { appStoreLinks } from '../../../config/hosts'
