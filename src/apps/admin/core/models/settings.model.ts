@@ -1,4 +1,5 @@
 export type SettingKey =
+  | 'signup_youtube_url'
   | 'bundle_overlap_behaviour'
   | 'bundle_carryover_expiry'
   | 'bundle_expiry_enabled'

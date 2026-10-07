@@ -2,13 +2,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { adminBasePath } from '../../../../config/hosts'
 import { MockDataBanner } from '../../components/MockDataBanner'
-import { branchApi, paymentApi } from '../../core/services'
+import { branchApi, paymentApi, settingsApi } from '../../core/services'
+import { DEFAULT_SIGNUP_YOUTUBE_URL, parseYoutubeVideoId } from '../../core/youtube'
 import type { Branch } from '../../core/models'
 import { ApiError } from '../../core/utils/apiError'
 import '../../styles/admin-global.css'
 import './settings.css'
 
-type SettingsTab = 'general' | 'pricing' | 'notifications' | 'security'
+type SettingsTab = 'general' | 'signup' | 'pricing' | 'notifications' | 'security'
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -55,6 +56,12 @@ export function SettingsPage() {
     ipRestrictionEnabled: false,
   })
 
+  const [signupVideoUrl, setSignupVideoUrl] = useState(DEFAULT_SIGNUP_YOUTUBE_URL)
+  const [savedSignupVideoUrl, setSavedSignupVideoUrl] = useState(DEFAULT_SIGNUP_YOUTUBE_URL)
+  const [signupLoading, setSignupLoading] = useState(true)
+  const [signupSaving, setSignupSaving] = useState(false)
+  const [signupError, setSignupError] = useState('')
+
   const loginHistory = [
     { admin: 'Admin User', device: 'Chrome · Windows', location: 'Accra, GH', time: 'Just now', status: 'Success' },
     {
@@ -68,6 +75,33 @@ export function SettingsPage() {
 
   useEffect(() => {
     void branchApi.listBranches(undefined, true).then(setBranches).catch(() => setBranches([]))
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    setSignupLoading(true)
+    settingsApi
+      .list()
+      .then((settings) => {
+        if (cancelled) return
+        const list = Array.isArray(settings) ? settings : []
+        const current = list.find((item) => item.key === 'signup_youtube_url')
+        if (!current) return
+        const value = (current.value || '').trim()
+        setSignupVideoUrl(value)
+        setSavedSignupVideoUrl(value)
+        setSignupError('')
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setSignupError(err instanceof ApiError ? err.message : 'Could not load the sign-up video.')
+      })
+      .finally(() => {
+        if (!cancelled) setSignupLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const loadPaymentConfig = useCallback(async () => {
@@ -104,10 +138,47 @@ export function SettingsPage() {
     navigate(`${base}/change-password`)
   }
 
+  const saveSignupVideo = async () => {
+    const trimmed = signupVideoUrl.trim()
+    if (trimmed && !parseYoutubeVideoId(trimmed)) {
+      setSignupError('Enter a YouTube watch, share, or embed link.')
+      setSaved(false)
+      return
+    }
+
+    setSignupSaving(true)
+    setSignupError('')
+    try {
+      const updated = await settingsApi.update('signup_youtube_url', { value: trimmed })
+      const value = updated.value?.trim() || ''
+      setSignupVideoUrl(value)
+      setSavedSignupVideoUrl(value)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch (err: unknown) {
+      setSignupError(err instanceof ApiError ? err.message : 'Could not save the sign-up video.')
+    } finally {
+      setSignupSaving(false)
+    }
+  }
+
   const saveSettings = () => {
+    if (activeTab === 'signup') {
+      void saveSignupVideo()
+      return
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
+
+  const discardChanges = () => {
+    if (activeTab !== 'signup') return
+    setSignupVideoUrl(savedSignupVideoUrl)
+    setSignupError('')
+    setSaved(false)
+  }
+
+  const signupVideoId = parseYoutubeVideoId(signupVideoUrl)
 
   return (
     <div className="settings-shell">
@@ -118,6 +189,13 @@ export function SettingsPage() {
           onClick={() => setTab('general')}
         >
           <i className="ri-building-line" /> Organization Profile
+        </button>
+        <button
+          type="button"
+          className={`settings-nav-item${activeTab === 'signup' ? ' settings-nav-active' : ''}`}
+          onClick={() => setTab('signup')}
+        >
+          <i className="ri-youtube-line" /> Sign-up Video
         </button>
         <button
           type="button"
@@ -254,6 +332,54 @@ export function SettingsPage() {
                 ))
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'signup' && (
+          <div className="card">
+            <div className="card-hdr">
+              <h2 className="card-title">Sign-up Video</h2>
+            </div>
+            <p className="settings-hint">
+              This YouTube video plays on the welcome and sign-up screens in the member app.
+              Paste a watch, share, or embed link. Leave it blank to show the poster instead.
+            </p>
+            {signupLoading ? (
+              <p className="settings-hint">Loading the current video…</p>
+            ) : (
+              <div className="form-group">
+                <label className="form-label" htmlFor="signup-youtube-url">
+                  YouTube link
+                </label>
+                <input
+                  id="signup-youtube-url"
+                  type="url"
+                  className="form-input"
+                  placeholder="https://www.youtube.com/watch?v=…"
+                  value={signupVideoUrl}
+                  onChange={(e) => {
+                    setSignupVideoUrl(e.target.value)
+                    setSignupError('')
+                    setSaved(false)
+                  }}
+                />
+                {signupError ? <p className="signup-video-error">{signupError}</p> : null}
+                {signupVideoId ? (
+                  <div className="signup-video-preview">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${signupVideoId}`}
+                      title="Sign-up video preview"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                ) : signupVideoUrl.trim() && !signupError ? (
+                  <p className="signup-video-error">That link is not a YouTube video.</p>
+                ) : signupVideoUrl.trim() ? null : (
+                  <p className="settings-hint">No video is set. The app will show the sign-up poster.</p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -531,11 +657,16 @@ export function SettingsPage() {
               <i className="ri-checkbox-circle-fill" /> Settings saved
             </span>
           )}
-          <button type="button" className="btn-outline">
+          <button type="button" className="btn-outline" onClick={discardChanges} disabled={signupSaving}>
             Discard Changes
           </button>
-          <button type="button" className="btn-green" onClick={saveSettings}>
-            <i className="ri-save-line" /> Save Changes
+          <button
+            type="button"
+            className="btn-green"
+            onClick={saveSettings}
+            disabled={signupSaving || (activeTab === 'signup' && signupLoading)}
+          >
+            <i className="ri-save-line" /> {signupSaving ? 'Saving…' : 'Save Changes'}
           </button>
         </div>
       </div>
