@@ -91,7 +91,15 @@ export function BranchesPage() {
     return branches.filter((b) => b.region_id === regionFilter)
   }, [branches, regionFilter])
 
-  const mapBranches = useMemo(() => branchesToMapMarkers(filteredBranches), [filteredBranches])
+  const mapBranches = useMemo(
+    () =>
+      branchesToMapMarkers(
+        filteredBranches.filter(
+          (branch) => branch.is_active && branch.lat != null && branch.lng != null,
+        ),
+      ),
+    [filteredBranches],
+  )
 
   const openCreate = () => {
     setEditingBranch(null)
@@ -239,10 +247,7 @@ export function BranchesPage() {
         <div className="map-legend">
           <span className="ldot ldot-blue" />
           <span className="ltext">
-            {filteredBranches.length} {filteredBranches.length === 1 ? 'branch' : 'branches'}
-            {filteredBranches.some((branch) => branch.lat == null || branch.lng == null)
-              ? ' · branches without coordinates are hidden on the map'
-              : ''}
+            {mapBranches.length} {mapBranches.length === 1 ? 'branch' : 'branches'} on the map
           </span>
         </div>
       </section>

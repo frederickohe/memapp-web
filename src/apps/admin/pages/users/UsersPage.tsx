@@ -6,7 +6,14 @@ import { ApiError } from '../../core/utils/apiError'
 import '../../styles/shared.css'
 import './users.css'
 
-const MEMBERSHIP_TYPES = ['Student', 'Individual', 'Family', 'Corporate', 'BASIC', 'STANDARD', 'PREMIUM', 'VIP']
+const MEMBERSHIP_TYPES = ['Junior', 'Associate', 'Full', 'Life Membership', 'Honorary']
+
+function membershipOptions(current?: string): string[] {
+  if (current && !MEMBERSHIP_TYPES.includes(current)) {
+    return [current, ...MEMBERSHIP_TYPES]
+  }
+  return [...MEMBERSHIP_TYPES]
+}
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
@@ -670,7 +677,7 @@ export function UsersPage() {
                     onChange={(e) => setEditBuffer({ ...editBuffer, membership_type: e.target.value })}
                   >
                     <option value="">—</option>
-                    {MEMBERSHIP_TYPES.map((type) => (
+                    {membershipOptions(editBuffer.membership_type).map((type) => (
                       <option key={type} value={type}>
                         {type}
                       </option>

@@ -1,6 +1,6 @@
 # memapp-web
 
-Single React app for the **Ymca Member App** public website and admin dashboard.
+Single React app for the **YMCA Member App** public website and admin dashboard.
 
 ## Domains
 
