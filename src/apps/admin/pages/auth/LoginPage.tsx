@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { adminBasePath } from '../../../../config/hosts'
 import { useAuth } from '../../core/AuthContext'
+import { TwoFactorRequiredError } from '../../core/services'
 import { ApiError } from '../../core/utils/apiError'
 import '../../styles/admin-global.css'
 import '../../styles/auth-shared.css'
@@ -10,12 +11,15 @@ export function LoginPage() {
   const base = adminBasePath()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { login } = useAuth()
+  const { login, completeTwoFactor } = useAuth()
 
   const sessionExpired = searchParams.get('sessionExpired') === '1'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [otp, setOtp] = useState('')
+  const [challengeToken, setChallengeToken] = useState<string | null>(null)
+  const [destination, setDestination] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -28,19 +32,32 @@ export function LoginPage() {
     e.preventDefault()
     setTouched({ email: true, password: true })
 
-    if (!email || !password || emailInvalid) return
+    if (challengeToken) {
+      if (otp.trim().length !== 5) {
+        setErrorMessage('Enter the 5-digit verification code.')
+        return
+      }
+    } else if (!email || !password || emailInvalid) return
 
     setSubmitting(true)
     setErrorMessage(null)
 
     try {
-      const { resetRequired } = await login({ email, password })
+      const { resetRequired } = challengeToken
+        ? await completeTwoFactor(challengeToken, otp.trim())
+        : await login({ email, password })
       if (resetRequired) {
         navigate(`${base}/change-password?forced=1`)
       } else {
         navigate(`${base}/dashboard`)
       }
     } catch (err) {
+      if (err instanceof TwoFactorRequiredError) {
+        setChallengeToken(err.challengeToken)
+        setDestination(err.destination)
+        setOtp('')
+        return
+      }
       setErrorMessage(err instanceof ApiError ? err.message : 'Unable to sign in. Please try again.')
     } finally {
       setSubmitting(false)
@@ -61,8 +78,12 @@ export function LoginPage() {
           <p className="auth-tag">Admin Portal</p>
         </div>
 
-        <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-sub">Sign in to manage members, programs, and operations.</p>
+        <h1 className="auth-title">{challengeToken ? 'Check your code' : 'Welcome back'}</h1>
+        <p className="auth-sub">
+          {challengeToken
+            ? `Enter the 5-digit code sent to ${destination || 'you'}.`
+            : 'Sign in to manage members, programs, and operations.'}
+        </p>
 
         {sessionExpired && (
           <div className="auth-alert auth-alert-info">
@@ -79,6 +100,35 @@ export function LoginPage() {
         )}
 
         <form onSubmit={(e) => void submit(e)} noValidate>
+          {challengeToken ? (
+            <div className="form-group">
+              <label className="form-label" htmlFor="otp">
+                Verification code
+              </label>
+              <input
+                id="otp"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                className="form-input"
+                placeholder="5-digit code"
+                value={otp}
+                maxLength={5}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 5))}
+              />
+              <button
+                type="button"
+                className="auth-back-link"
+                onClick={() => {
+                  setChallengeToken(null)
+                  setOtp('')
+                  setErrorMessage(null)
+                }}
+              >
+                Use a different account
+              </button>
+            </div>
+          ) : (
+          <>
           <div className="form-group">
             <label className="form-label" htmlFor="email">
               Email Address
@@ -122,6 +172,8 @@ export function LoginPage() {
             </div>
             {passwordInvalid && <p className="field-error">Password is required.</p>}
           </div>
+          </>
+          )}
 
           <button type="submit" className="btn-dark auth-submit" disabled={submitting}>
             {submitting && <i className="ri-loader-4-line spin" />}
@@ -143,6 +195,15 @@ export function LoginPage() {
         }
         .logo-volt { color: #111111; }
         .logo-go { color: #ed1c24; }
+        .auth-back-link {
+          margin-top: 12px;
+          padding: 0;
+          border: 0;
+          background: none;
+          color: #6b6c6e;
+          font-size: 13px;
+          cursor: pointer;
+        }
       `}</style>
     </div>
   )

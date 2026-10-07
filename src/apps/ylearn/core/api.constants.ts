@@ -1,6 +1,7 @@
 export const YLEARN_API = {
   auth: {
     signin: '/auth/signin',
+    twoFactorSignin: '/auth/2fa/signin',
     adminSignin: '/auth/admin/signin',
     signout: '/auth/signout',
     adminSignout: '/auth/admin/signout',

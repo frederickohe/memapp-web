@@ -15,6 +15,7 @@ import type {
   ApiSimpleSuccess,
   BackendAdminProfileResponse,
   BackendAdminSigninResponse,
+  TwoFactorChallengeResponse,
   ChangePasswordRequest,
   CreateAdminUserRequest,
   CreateRoleRequest,
@@ -78,26 +79,62 @@ import type {
 } from './models'
 import { storage } from './utils/storage'
 
+export class TwoFactorRequiredError extends Error {
+  challengeToken: string
+  destination: string
+
+  constructor(challengeToken: string, destination: string) {
+    super('Two-factor authentication required')
+    this.name = 'TwoFactorRequiredError'
+    this.challengeToken = challengeToken
+    this.destination = destination
+  }
+}
+
+function isTwoFactorChallenge(
+  value: BackendAdminSigninResponse | TwoFactorChallengeResponse,
+): value is TwoFactorChallengeResponse {
+  return Boolean(value.two_factor_required && 'challenge_token' in value && value.challenge_token)
+}
+
+async function finishAdminSession(signin: BackendAdminSigninResponse): Promise<AdminLoginData> {
+  storage.setItem('token', signin.access_token)
+  if (signin.refresh_token) {
+    storage.setItem('refresh_token', signin.refresh_token)
+  }
+
+  try {
+    const profile = await apiRequest<BackendAdminProfileResponse>(API_ENDPOINTS.adminAuth.me)
+    return toAdminLoginData(signin.access_token, profile)
+  } catch (error) {
+    storage.removeItem('token')
+    storage.removeItem('refresh_token')
+    throw error
+  }
+}
+
 export const authApi = {
   async login(payload: AdminLoginRequest): Promise<AdminLoginData> {
-    const signin = await apiRequest<BackendAdminSigninResponse>(API_ENDPOINTS.adminAuth.login, {
+    const signin = await apiRequest<BackendAdminSigninResponse | TwoFactorChallengeResponse>(
+      API_ENDPOINTS.adminAuth.login,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    )
+
+    if (isTwoFactorChallenge(signin)) {
+      throw new TwoFactorRequiredError(signin.challenge_token, signin.destination ?? '')
+    }
+
+    return finishAdminSession(signin)
+  },
+  async completeTwoFactor(challengeToken: string, otp: string): Promise<AdminLoginData> {
+    const signin = await apiRequest<BackendAdminSigninResponse>(API_ENDPOINTS.adminAuth.twoFactorSignin, {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ challenge_token: challengeToken, otp }),
     })
-
-    storage.setItem('token', signin.access_token)
-    if (signin.refresh_token) {
-      storage.setItem('refresh_token', signin.refresh_token)
-    }
-
-    try {
-      const profile = await apiRequest<BackendAdminProfileResponse>(API_ENDPOINTS.adminAuth.me)
-      return toAdminLoginData(signin.access_token, profile)
-    } catch (error) {
-      storage.removeItem('token')
-      storage.removeItem('refresh_token')
-      throw error
-    }
+    return finishAdminSession(signin)
   },
   async me(): Promise<AdminProfile> {
     const profile = await apiRequest<BackendAdminProfileResponse>(API_ENDPOINTS.adminAuth.me)

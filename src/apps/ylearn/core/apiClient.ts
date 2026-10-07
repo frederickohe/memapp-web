@@ -46,7 +46,10 @@ export async function apiRequest<T>(
     throw new ApiError('Could not reach the server. Check your connection and try again.', 0)
   }
 
-  const isLogin = path.includes('/auth/signin') || path.includes('/auth/admin/signin')
+  const isLogin =
+    path.includes('/auth/signin') ||
+    path.includes('/auth/admin/signin') ||
+    path.includes('/auth/2fa/')
   let body: unknown = null
   const text = await response.text()
   if (text) {

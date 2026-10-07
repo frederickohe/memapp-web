@@ -20,6 +20,7 @@ interface AuthContextValue {
   loading: boolean
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<UserProfile>
+  completeTwoFactor: (challengeToken: string, otp: string) => Promise<UserProfile>
   logout: () => Promise<void>
   requireRole: (role?: UserRole) => UserProfile | null
 }
@@ -71,6 +72,12 @@ export function YlearnAuthProvider({ children }: { children: ReactNode }) {
     return profile
   }, [])
 
+  const completeTwoFactor = useCallback(async (challengeToken: string, otp: string) => {
+    const profile = await ylearnAuthApi.completeTwoFactor(challengeToken, otp)
+    setUser(profile)
+    return profile
+  }, [])
+
   const logout = useCallback(async () => {
     await ylearnAuthApi.logout()
     clearSession()
@@ -91,10 +98,11 @@ export function YlearnAuthProvider({ children }: { children: ReactNode }) {
       loading,
       isAuthenticated: !!user && !!storage.getItem('token'),
       login,
+      completeTwoFactor,
       logout,
       requireRole,
     }),
-    [user, loading, login, logout, requireRole],
+    [user, loading, login, completeTwoFactor, logout, requireRole],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

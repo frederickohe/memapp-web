@@ -5,13 +5,22 @@ export interface AdminLoginRequest {
 
 /** Response from POST /auth/admin/signin */
 export interface BackendAdminSigninResponse {
-  status: string
+  status?: string
   access_token: string
   refresh_token: string
   token_type: string
   expires_in: number
   user_type: string
   role?: string | null
+  two_factor_required?: boolean
+}
+
+export interface TwoFactorChallengeResponse {
+  two_factor_required: true
+  challenge_token: string
+  channel?: string
+  destination?: string
+  message?: string
 }
 
 /** Response from GET /auth/admin/me */

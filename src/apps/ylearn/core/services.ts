@@ -19,14 +19,51 @@ import type { Course, ContentItem, Enrolment, Provider, UserProfile } from './ty
 import { storage } from './utils/storage'
 
 interface SigninResponse {
-  access_token: string
+  access_token?: string
   refresh_token?: string
-  user_type: string
+  user_type?: string
+  two_factor_required?: boolean
+  challenge_token?: string
+  destination?: string
+}
+
+export class TwoFactorRequiredError extends Error {
+  challengeToken: string
+  destination: string
+
+  constructor(challengeToken: string, destination: string) {
+    super('Two-factor authentication required')
+    this.name = 'TwoFactorRequiredError'
+    this.challengeToken = challengeToken
+    this.destination = destination
+  }
 }
 
 export interface LoginPayload {
   email: string
   password: string
+}
+
+async function profileFromSignin(signin: SigninResponse): Promise<UserProfile> {
+  if (!signin.access_token) {
+    throw new Error('Sign in succeeded without a session token')
+  }
+  storage.setItem('token', signin.access_token)
+  if (signin.refresh_token) {
+    storage.setItem('refresh_token', signin.refresh_token)
+  }
+
+  if (signin.user_type === 'ADMIN') {
+    const admin = await apiRequest<ApiAdminProfile>(YLEARN_API.auth.adminMe)
+    const profile = mapAdminProfile(admin)
+    storage.setJson('user', profile)
+    return profile
+  }
+
+  const member = await apiRequest<ApiMemberProfile>(YLEARN_API.auth.me)
+  const profile = mapMemberProfile(member)
+  storage.setJson('user', profile)
+  return profile
 }
 
 export const ylearnAuthApi = {
@@ -36,22 +73,19 @@ export const ylearnAuthApi = {
       body: JSON.stringify(payload),
     })
 
-    storage.setItem('token', signin.access_token)
-    if (signin.refresh_token) {
-      storage.setItem('refresh_token', signin.refresh_token)
+    if (signin.two_factor_required && signin.challenge_token) {
+      throw new TwoFactorRequiredError(signin.challenge_token, signin.destination ?? '')
     }
 
-    if (signin.user_type === 'ADMIN') {
-      const admin = await apiRequest<ApiAdminProfile>(YLEARN_API.auth.adminMe)
-      const profile = mapAdminProfile(admin)
-      storage.setJson('user', profile)
-      return profile
-    }
+    return profileFromSignin(signin)
+  },
 
-    const member = await apiRequest<ApiMemberProfile>(YLEARN_API.auth.me)
-    const profile = mapMemberProfile(member)
-    storage.setJson('user', profile)
-    return profile
+  async completeTwoFactor(challengeToken: string, otp: string): Promise<UserProfile> {
+    const signin = await apiRequest<SigninResponse>(YLEARN_API.auth.twoFactorSignin, {
+      method: 'POST',
+      body: JSON.stringify({ challenge_token: challengeToken, otp }),
+    })
+    return profileFromSignin(signin)
   },
 
   async me(): Promise<UserProfile> {

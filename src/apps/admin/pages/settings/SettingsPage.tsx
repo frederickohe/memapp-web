@@ -367,9 +367,10 @@ export function SettingsPage() {
                 {signupVideoId ? (
                   <div className="signup-video-preview">
                     <iframe
-                      src={`https://www.youtube.com/embed/${signupVideoId}`}
+                      src={`https://www.youtube-nocookie.com/embed/${signupVideoId}?rel=0&modestbranding=1&playsinline=1`}
                       title="Sign-up video preview"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                       allowFullScreen
                     />
                   </div>

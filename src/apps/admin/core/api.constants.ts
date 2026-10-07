@@ -1,6 +1,7 @@
 export const API_ENDPOINTS = {
   adminAuth: {
     login: '/auth/admin/signin',
+    twoFactorSignin: '/auth/2fa/signin',
     me: '/auth/admin/me',
     logout: '/auth/admin/signout',
     refresh: '/auth/admin/refresh',
