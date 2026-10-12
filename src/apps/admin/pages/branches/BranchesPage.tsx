@@ -191,6 +191,7 @@ export function BranchesPage() {
             a.name.localeCompare(b.name),
           ),
         )
+        setRegionFilter((current) => (current === 'all' ? current : created.region_id))
       }
       closeModal()
     } catch (err) {
@@ -340,12 +341,6 @@ export function BranchesPage() {
               </button>
             </div>
 
-            {saveError && (
-              <div className="auth-alert auth-alert-error" style={{ marginBottom: 12 }}>
-                {saveError}
-              </div>
-            )}
-
             <div className="form-group">
               <label className="form-label">Region</label>
               {regions.length === 0 ? (
@@ -437,6 +432,13 @@ export function BranchesPage() {
                 ))}
               </select>
             </div>
+
+            {saveError && (
+              <div ref={(el) => el?.scrollIntoView({ block: 'nearest' })} className="auth-alert auth-alert-error" style={{ marginBottom: 12 }}>
+                <i className="ri-error-warning-line" />
+                <span>{saveError}</span>
+              </div>
+            )}
 
             <div className="modal-footer">
               <button type="button" className="btn-outline" onClick={closeModal}>
