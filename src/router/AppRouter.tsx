@@ -5,6 +5,9 @@ import { AdminLayout } from '../apps/admin/AdminLayout'
 import { RequireAuth, RequireGuest } from '../apps/admin/guards'
 import { LoginPage } from '../apps/admin/pages/auth/LoginPage'
 import { ChangePasswordPage } from '../apps/admin/pages/auth/ChangePasswordPage'
+import { ForgotPasswordPage } from '../apps/admin/pages/auth/ForgotPasswordPage'
+import { ForgotPasswordCodePage } from '../apps/admin/pages/auth/ForgotPasswordCodePage'
+import { ForgotPasswordResetPage } from '../apps/admin/pages/auth/ForgotPasswordResetPage'
 import { DashboardPage } from '../apps/admin/pages/dashboard/DashboardPage'
 import { AnalyticsPage } from '../apps/admin/pages/analytics/AnalyticsPage'
 import { FinancePage } from '../apps/admin/pages/finance/FinancePage'
@@ -49,6 +52,9 @@ function LocalRoutes() {
       <Route path="/admin/*" element={<AdminApp />}>
         <Route element={<RequireGuest />}>
           <Route path="login" element={<LoginPage />} />
+          <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="forgot-password/code" element={<ForgotPasswordCodePage />} />
+          <Route path="forgot-password/reset" element={<ForgotPasswordResetPage />} />
         </Route>
 
         <Route element={<RequireAuth />}>
@@ -83,6 +89,9 @@ function ProductionAdminRoutes() {
       <Route path="/*" element={<AdminApp />}>
         <Route element={<RequireGuest />}>
           <Route path="login" element={<LoginPage />} />
+          <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="forgot-password/code" element={<ForgotPasswordCodePage />} />
+          <Route path="forgot-password/reset" element={<ForgotPasswordResetPage />} />
         </Route>
 
         <Route element={<RequireAuth />}>

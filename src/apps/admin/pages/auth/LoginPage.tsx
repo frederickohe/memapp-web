@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { adminBasePath } from '../../../../config/hosts'
 import { useAuth } from '../../core/AuthContext'
 import { TwoFactorRequiredError } from '../../core/services'
@@ -172,6 +172,11 @@ export function LoginPage() {
             </div>
             {passwordInvalid && <p className="field-error">Password is required.</p>}
           </div>
+          <p className="auth-forgot-row">
+            <Link to={`${base}/forgot-password`} className="auth-forgot-link">
+              Forgot password?
+            </Link>
+          </p>
           </>
           )}
 
@@ -204,6 +209,17 @@ export function LoginPage() {
           font-size: 13px;
           cursor: pointer;
         }
+        .auth-forgot-row {
+          margin: -4px 0 18px;
+          text-align: right;
+        }
+        .auth-forgot-link {
+          color: #ed1c24;
+          font-size: 12.5px;
+          font-weight: 600;
+          text-decoration: none;
+        }
+        .auth-forgot-link:hover { text-decoration: underline; }
       `}</style>
     </div>
   )

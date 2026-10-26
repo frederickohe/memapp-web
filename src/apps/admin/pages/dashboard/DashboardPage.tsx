@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { adminBasePath } from '../../../../config/hosts'
+import { AdminErrorBoundary } from '../../components/AdminErrorBoundary'
 import { MockDataBanner } from '../../components/MockDataBanner'
 import { branchesToMapMarkers, YmcaBranchMap } from '../../components/YmcaBranchMap'
 import { branchApi, memberUserApi, paymentApi, vhsApi } from '../../core/services'
@@ -193,7 +194,9 @@ export function DashboardPage() {
           <h2 className="card-title">YMCA Branches in Ghana</h2>
         </div>
         <div className="map-box map-box-tall">
-          <YmcaBranchMap className="osm-map-container" branches={branchesToMapMarkers(branches)} />
+          <AdminErrorBoundary fallbackTitle="Branch map failed to load">
+            <YmcaBranchMap className="osm-map-container" branches={branchesToMapMarkers(branches)} />
+          </AdminErrorBoundary>
         </div>
         <div className="map-legend">
           <span className="ldot ldot-blue" />

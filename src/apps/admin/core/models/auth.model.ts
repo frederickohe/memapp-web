@@ -64,3 +64,30 @@ export interface ChangePasswordRequest {
   current_password: string
   new_password: string
 }
+
+export interface ForgotPasswordRequest {
+  phone: string
+}
+
+export interface ForgotPasswordVerifyRequest {
+  phone: string
+  otp: string
+}
+
+export interface ForgotPasswordResetRequest {
+  reset_token: string
+  new_password: string
+}
+
+export interface ForgotPasswordResponse {
+  success: boolean
+  message: string
+  destination?: string
+  channel?: string
+}
+
+export interface ForgotPasswordVerifyResponse {
+  success: boolean
+  message: string
+  reset_token: string
+}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
+import { AdminErrorBoundary } from './components/AdminErrorBoundary'
 import { AuthProvider } from './core/AuthContext'
 import { loadAppConfig } from './core/appConfig'
 import './styles/admin-global.css'
@@ -8,7 +9,22 @@ export function AdminApp() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    void loadAppConfig().finally(() => setReady(true))
+    let cancelled = false
+    const timeout = window.setTimeout(() => {
+      if (!cancelled) setReady(true)
+    }, 4000)
+
+    void loadAppConfig().finally(() => {
+      if (!cancelled) {
+        window.clearTimeout(timeout)
+        setReady(true)
+      }
+    })
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timeout)
+    }
   }, [])
 
   if (!ready) {
@@ -32,7 +48,9 @@ export function AdminApp() {
 
   return (
     <AuthProvider>
-      <Outlet />
+      <AdminErrorBoundary>
+        <Outlet />
+      </AdminErrorBoundary>
     </AuthProvider>
   )
 }

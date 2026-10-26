@@ -65,7 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const role = await roleApi.getRole(roleId, true)
-      setPermissionNames(new Set((role.permissions ?? []).map((p) => p.name)))
+      const permissions = role?.permissions ?? []
+      setPermissionNames(new Set(permissions.map((p) => p.name)))
     } catch {
       setPermissionNames(new Set())
     } finally {
@@ -122,7 +123,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const role = await roleApi.getRole(data.admin.role.id, true)
-      setPermissionNames(new Set((role.permissions ?? []).map((p) => p.name)))
+      const permissions = role?.permissions ?? []
+      setPermissionNames(new Set(permissions.map((p) => p.name)))
     } catch {
       setPermissionNames(new Set())
     } finally {

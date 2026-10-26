@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
-import L from 'leaflet'
+import { useEffect, useRef, useState } from 'react'
+import type { Map as LeafletMap, Marker as LeafletMarker } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { getAppConfig } from '../core/appConfig'
 import './ymca-branch-map.css'
@@ -25,14 +25,8 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;')
 }
 
-function createBranchIcon(): L.DivIcon {
-  return L.divIcon({
-    className: 'ymca-branch-marker',
-    html: '<div class="ymca-branch-pin"><i class="ri-building-2-fill"></i></div>',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-  })
+function hasCoordinates(branch: MapBranch): branch is MapBranch & { lat: number; lng: number } {
+  return Number.isFinite(Number(branch.lat)) && Number.isFinite(Number(branch.lng))
 }
 
 interface YmcaBranchMapProps {
@@ -42,41 +36,105 @@ interface YmcaBranchMapProps {
 
 export function YmcaBranchMap({ className, branches }: YmcaBranchMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<L.Map | null>(null)
-  const signature = JSON.stringify(
-    branches.map((branch) => [branch.id, branch.name, branch.region, branch.address, branch.lat, branch.lng]),
-  )
+  const mapRef = useRef<LeafletMap | null>(null)
+  const markersRef = useRef<LeafletMarker[]>([])
+  const branchesRef = useRef(branches)
+  branchesRef.current = branches
+
+  const [mapError, setMapError] = useState<string | null>(null)
+  const apiKey = getGeoapifyApiKey()
+
+  // Create the map once; update markers when branch data changes.
+  useEffect(() => {
+    if (!apiKey || !containerRef.current || mapRef.current) return
+
+    let cancelled = false
+
+    async function init() {
+      try {
+        const L = await import('leaflet')
+        if (cancelled || !containerRef.current || mapRef.current) return
+
+        // Clear stale leaflet id left by StrictMode remounts / HMR.
+        const el = containerRef.current as HTMLDivElement & { _leaflet_id?: number }
+        if (el._leaflet_id) {
+          el._leaflet_id = undefined
+          el.innerHTML = ''
+        }
+
+        const map = L.map(el, {
+          zoomControl: true,
+          attributionControl: true,
+        })
+
+        L.tileLayer(
+          `https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${apiKey}`,
+          {
+            maxZoom: 20,
+            attribution:
+              'Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Geoapify</a> | © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+          },
+        ).addTo(map)
+
+        mapRef.current = map
+        syncMarkers(L, map, branchesRef.current)
+        requestAnimationFrame(() => map.invalidateSize())
+      } catch (err) {
+        console.error('Failed to initialize branch map', err)
+        if (!cancelled) {
+          setMapError(err instanceof Error ? err.message : 'Map failed to load')
+        }
+      }
+    }
+
+    void init()
+
+    return () => {
+      cancelled = true
+      markersRef.current.forEach((marker) => marker.remove())
+      markersRef.current = []
+      mapRef.current?.remove()
+      mapRef.current = null
+    }
+  }, [apiKey])
 
   useEffect(() => {
-    const apiKey = getGeoapifyApiKey()
-    if (!containerRef.current || !apiKey) return
+    if (!mapRef.current) return
 
-    const mapped = (JSON.parse(signature) as Array<[string, string, string, string | null, number | null, number | null]>).map(
-      ([id, name, region, address, lat, lng]) => ({ id, name, region, address, lat, lng }),
-    )
-
-    const map = L.map(containerRef.current, {
-      zoomControl: true,
-      attributionControl: true,
+    let cancelled = false
+    void import('leaflet').then((L) => {
+      if (cancelled || !mapRef.current) return
+      try {
+        syncMarkers(L, mapRef.current, branches)
+      } catch (err) {
+        console.error('Failed to update branch markers', err)
+      }
     })
 
-    L.tileLayer(
-      `https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${apiKey}`,
-      {
-        maxZoom: 20,
-        attribution:
-          'Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Geoapify</a> | © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
-      },
-    ).addTo(map)
+    return () => {
+      cancelled = true
+    }
+  }, [branches])
 
-    const icon = createBranchIcon()
-    const markers: L.Marker[] = []
-    const located = mapped.filter(
-      (branch) => Number.isFinite(Number(branch.lat)) && Number.isFinite(Number(branch.lng)),
-    )
+  function syncMarkers(
+    L: typeof import('leaflet'),
+    map: LeafletMap,
+    items: MapBranch[],
+  ) {
+    markersRef.current.forEach((marker) => marker.remove())
+    markersRef.current = []
 
-    located.forEach((branch) => {
-      const marker = L.marker([branch.lat as number, branch.lng as number], { icon })
+    const icon = L.divIcon({
+      className: 'ymca-branch-marker',
+      html: '<div class="ymca-branch-pin"><i class="ri-building-2-fill"></i></div>',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -32],
+    })
+
+    const located = items.filter(hasCoordinates)
+    for (const branch of located) {
+      const marker = L.marker([branch.lat, branch.lng], { icon })
         .addTo(map)
         .bindPopup(
           `<div class="ymca-branch-popup">
@@ -85,30 +143,16 @@ export function YmcaBranchMap({ className, branches }: YmcaBranchMapProps) {
             ${branch.address ? `<span class="ymca-branch-address">${escapeHtml(branch.address)}</span>` : ''}
           </div>`,
         )
-      markers.push(marker)
-    })
+      markersRef.current.push(marker)
+    }
 
-    if (markers.length > 0) {
-      const bounds = L.latLngBounds(markers.map((m) => m.getLatLng()))
+    if (markersRef.current.length > 0) {
+      const bounds = L.latLngBounds(markersRef.current.map((m) => m.getLatLng()))
       map.fitBounds(bounds, { padding: [48, 48], maxZoom: 8 })
     } else {
-      map.setView([7.9465, -1.0232], 6.5)
+      map.setView([7.9465, -1.0232], 7)
     }
-
-    const resize = window.setTimeout(() => {
-      map.invalidateSize()
-    }, 80)
-
-    mapRef.current = map
-
-    return () => {
-      window.clearTimeout(resize)
-      map.remove()
-      mapRef.current = null
-    }
-  }, [signature])
-
-  const apiKey = getGeoapifyApiKey()
+  }
 
   if (!apiKey) {
     return (
@@ -117,6 +161,15 @@ export function YmcaBranchMap({ className, branches }: YmcaBranchMapProps) {
         <p>
           Add your Geoapify API key to <code>VITE_GEOAPIFY_API_KEY</code> or <code>config.json</code>.
         </p>
+      </div>
+    )
+  }
+
+  if (mapError) {
+    return (
+      <div className="map-config-missing">
+        <i className="ri-error-warning-line" />
+        <p>Map unavailable: {mapError}</p>
       </div>
     )
   }

@@ -17,6 +17,11 @@ import type {
   BackendAdminSigninResponse,
   TwoFactorChallengeResponse,
   ChangePasswordRequest,
+  ForgotPasswordRequest,
+  ForgotPasswordResetRequest,
+  ForgotPasswordResponse,
+  ForgotPasswordVerifyRequest,
+  ForgotPasswordVerifyResponse,
   CreateAdminUserRequest,
   CreateRoleRequest,
   PaginationParams,
@@ -148,6 +153,24 @@ export const authApi = {
   },
   changePassword(payload: ChangePasswordRequest) {
     return apiRequest<ApiSimpleSuccess>(API_ENDPOINTS.adminAuth.changePassword, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+  requestPasswordReset(payload: ForgotPasswordRequest) {
+    return apiRequest<ForgotPasswordResponse>(API_ENDPOINTS.adminAuth.forgotPassword, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+  verifyPasswordResetOtp(payload: ForgotPasswordVerifyRequest) {
+    return apiRequest<ForgotPasswordVerifyResponse>(API_ENDPOINTS.adminAuth.forgotPasswordVerify, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+  completePasswordReset(payload: ForgotPasswordResetRequest) {
+    return apiRequest<ApiSimpleSuccess>(API_ENDPOINTS.adminAuth.forgotPasswordReset, {
       method: 'POST',
       body: JSON.stringify(payload),
     })

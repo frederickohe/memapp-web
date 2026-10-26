@@ -9,6 +9,7 @@ export interface AdminUserListItem {
   reset_required: boolean
   last_login_at: string | null
   role: AdminRoleSummary
+  invite_sms_sent?: boolean | null
 }
 
 export interface AdminUserListData {
@@ -22,9 +23,9 @@ export interface CreateAdminUserRequest {
   full_name: string
   email: string
   phone: string
-  password: string
+  password?: string
   role_id: string
-  reset_required: boolean
+  reset_required?: boolean
   assigned_region?: string
   assigned_branch?: string
 }

@@ -19,13 +19,6 @@ function roleLabel(name: string): string {
   return ROLE_LABELS[name] ?? titleCase(name.replace(/_/g, ' '))
 }
 
-function generateTempPassword(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$'
-  let out = ''
-  for (let i = 0; i < 12; i++) out += chars[Math.floor(Math.random() * chars.length)]
-  return out
-}
-
 function titleCase(s: string): string {
   return s.replace(/\b\w/g, (c) => c.toUpperCase())
 }
@@ -50,9 +43,11 @@ export function UserRolesPage() {
   const [showCreateUserModal, setShowCreateUserModal] = useState(false)
   const [userActionPending, setUserActionPending] = useState(false)
   const [userActionError, setUserActionError] = useState<string | null>(null)
-  const [createdUserCredentials, setCreatedUserCredentials] = useState<{ email: string; password: string } | null>(
-    null,
-  )
+  const [createdUserResult, setCreatedUserResult] = useState<{
+    email: string
+    phone: string
+    inviteSmsSent: boolean
+  } | null>(null)
   const [newAdminUser, setNewAdminUser] = useState({
     full_name: '',
     email: '',
@@ -225,13 +220,13 @@ export function UserRolesPage() {
       assigned_branch: '',
     })
     setUserActionError(null)
-    setCreatedUserCredentials(null)
+    setCreatedUserResult(null)
     setShowCreateUserModal(true)
   }
 
   const closeCreateUserModal = () => {
     setShowCreateUserModal(false)
-    setCreatedUserCredentials(null)
+    setCreatedUserResult(null)
   }
 
   const createAdminUser = async () => {
@@ -248,23 +243,24 @@ export function UserRolesPage() {
       return
     }
 
-    const tempPassword = generateTempPassword()
-
     setUserActionPending(true)
     setUserActionError(null)
 
     try {
-      await adminUserApi.create({
+      const created = await adminUserApi.create({
         full_name: full_name.trim(),
         email: email.trim(),
         phone: phone.trim(),
-        password: tempPassword,
         role_id,
         reset_required: true,
         assigned_region: assigned_region.trim() || undefined,
         assigned_branch: assigned_branch.trim() || undefined,
       })
-      setCreatedUserCredentials({ email: email.trim(), password: tempPassword })
+      setCreatedUserResult({
+        email: created.email,
+        phone: created.phone || phone.trim(),
+        inviteSmsSent: created.invite_sms_sent === true,
+      })
       void loadAll()
     } catch (err) {
       setUserActionError(
@@ -600,7 +596,7 @@ export function UserRolesPage() {
               </button>
             </div>
 
-            {!createdUserCredentials ? (
+            {!createdUserResult ? (
               <>
                 {userActionError && (
                   <div className="auth-alert auth-alert-error" style={{ marginBottom: 14 }}>
@@ -624,7 +620,7 @@ export function UserRolesPage() {
                   <input
                     type="email"
                     className="form-input"
-                    placeholder="name@voltgo.com"
+                    placeholder="name@ymemberapp.com"
                     value={newAdminUser.email}
                     onChange={(e) => setNewAdminUser((u) => ({ ...u, email: e.target.value }))}
                   />
@@ -692,8 +688,8 @@ export function UserRolesPage() {
                   </div>
                 )}
                 <p className="perm-note">
-                  <i className="ri-information-line" /> A temporary password will be generated automatically. The new
-                  admin will be required to change it on first login.
+                  <i className="ri-information-line" /> A temporary password is generated automatically and sent by SMS
+                  with the admin login link. They must change it on first sign-in.
                 </p>
 
                 <div className="modal-footer">
@@ -722,25 +718,26 @@ export function UserRolesPage() {
                   <i className="ri-checkbox-circle-fill" />
                   <h2>Admin user created</h2>
                   <p>
-                    Share these temporary credentials with {createdUserCredentials.email} securely. They&apos;ll be
-                    asked to set a new password on first login.
+                    {createdUserResult.inviteSmsSent
+                      ? `Login link and temporary password were sent by SMS to ${createdUserResult.phone}.`
+                      : `Account created for ${createdUserResult.email}, but the invite SMS could not be delivered. Ask them to use Forgot password on the login page.`}
                   </p>
                 </div>
 
                 <div className="credential-box">
                   <div className="credential-row">
                     <span className="info-label">Email</span>
-                    <span className="info-value">{createdUserCredentials.email}</span>
+                    <span className="info-value">{createdUserResult.email}</span>
                   </div>
                   <div className="credential-row">
-                    <span className="info-label">Temporary Password</span>
-                    <span className="info-value credential-pass">{createdUserCredentials.password}</span>
+                    <span className="info-label">Phone</span>
+                    <span className="info-value">{createdUserResult.phone}</span>
                   </div>
                 </div>
 
                 <p className="perm-note">
-                  <i className="ri-alarm-warning-line" /> This password is shown only once and cannot be retrieved
-                  later — copy it now.
+                  <i className="ri-information-line" /> They can also reset their password later from the admin login
+                  page using Forgot password.
                 </p>
 
                 <div className="modal-footer">
